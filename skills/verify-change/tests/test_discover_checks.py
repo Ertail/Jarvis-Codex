@@ -35,6 +35,30 @@ class DiscoverChecksTest(unittest.TestCase):
 
         commands = {item["command"] for item in checks}
         self.assertEqual(commands, {"npm run test", "npm run lint"})
+        self.assertEqual({item["cwd"] for item in checks}, {"."})
+
+    def test_reports_nested_package_working_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            package = root / "packages" / "web"
+            package.mkdir(parents=True)
+            (package / "package.json").write_text(
+                json.dumps({"scripts": {"test": "vitest run"}}),
+                encoding="utf-8",
+            )
+
+            checks = MODULE.discover(root)
+
+        self.assertEqual(
+            checks,
+            [
+                {
+                    "source": "packages/web/package.json",
+                    "cwd": "packages/web",
+                    "command": "npm run test",
+                }
+            ],
+        )
 
     def test_ignores_node_modules(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

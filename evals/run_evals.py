@@ -78,7 +78,7 @@ def validate_core_contract() -> None:
         fail("AGENTS.md exceeds the 250-line core budget")
 
 
-def validate_routing_cases() -> None:
+def validate_routing_fixture_schema() -> None:
     payload = json.loads((ROOT / "evals" / "routing-cases.json").read_text())
     cases = payload.get("cases", [])
     ids = [case["id"] for case in cases]
@@ -86,6 +86,35 @@ def validate_routing_cases() -> None:
         fail("routing suite needs at least 12 cases")
     if len(ids) != len(set(ids)):
         fail("routing case IDs must be unique")
+    allowed_routes = {"direct", "standard", "gated"}
+    allowed_skills = REQUIRED_SKILLS
+    allowed_agents = REQUIRED_AGENTS
+    expectation_fields = {
+        "expected_route",
+        "expected_skill",
+        "expected_agents",
+        "must_include",
+        "must_not",
+    }
+    for case in cases:
+        if not case.get("request"):
+            fail(f"{case.get('id', '<missing>')}: request is required")
+        if not expectation_fields.intersection(case):
+            fail(f"{case['id']}: at least one expectation is required")
+        if route := case.get("expected_route"):
+            if route not in allowed_routes:
+                fail(f"{case['id']}: invalid route {route}")
+        if skill := case.get("expected_skill"):
+            if skill not in allowed_skills:
+                fail(f"{case['id']}: invalid skill {skill}")
+        for agent in case.get("expected_agents", []):
+            if agent not in allowed_agents:
+                fail(f"{case['id']}: invalid agent {agent}")
+        for field in ("must_include", "must_not"):
+            if field in case and not all(
+                isinstance(value, str) and value.strip() for value in case[field]
+            ):
+                fail(f"{case['id']}: {field} must contain non-empty strings")
 
 
 def main() -> int:
@@ -94,7 +123,7 @@ def main() -> int:
         validate_skills,
         validate_agents,
         validate_core_contract,
-        validate_routing_cases,
+        validate_routing_fixture_schema,
     )
     for check in checks:
         check()

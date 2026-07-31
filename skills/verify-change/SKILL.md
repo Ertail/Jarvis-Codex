@@ -15,8 +15,9 @@ Run:
 python3 scripts/discover_checks.py [repo-root]
 ```
 
-The script reports candidate commands from package manifests, task runners, CI
-configuration, and common language layouts. It does not execute them.
+The script reports candidate commands and their required working directories
+from package manifests, task runners, CI configuration, and common language
+layouts. It does not execute them. Run each command from its reported `cwd`.
 
 Inspect the changed files and choose the smallest checks that cover their
 behavior. Prefer explicit project documentation and CI commands over generic

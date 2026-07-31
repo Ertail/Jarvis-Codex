@@ -23,8 +23,8 @@ they materially improve safety or quality.
   - `jarvis_explorer` — read-only evidence gathering
   - `jarvis_reviewer` — independent, evidence-backed review
   - `jarvis_builder` — bounded implementation and verification
-- Routing regression cases that guard against excessive ceremony and unsafe
-  autonomy.
+- A routing scenario catalog for manual and future model-based regression
+  evaluation.
 
 ## Design principles
 
@@ -81,6 +81,10 @@ python3 evals/run_evals.py
 python3 -m unittest discover -s skills/verify-change/tests -v
 ```
 
+`evals/run_evals.py` validates package structure and routing-fixture schema. It
+does not execute a model or claim behavioral routing coverage. Use the scenario
+catalog for manual or external model-based forward evaluation.
+
 Validate every skill with Codex's `skill-creator` validator and validate the
 plugin with `plugin-creator` before release. The exact validator paths depend on
 the local Codex installation and are intentionally not embedded in the
@@ -93,7 +97,8 @@ Version `0.1.0` is the first Codex-native baseline:
 - Core working agreement: complete
 - Workflow skills: complete
 - Minimal custom agents: complete
-- Plugin package and routing evals: complete
+- Plugin package and routing scenario catalog: complete
+- Automated model-behavior routing eval: planned
 
 The original migration analysis remains available in
 [`codex-harness-analysis.html`](codex-harness-analysis.html).

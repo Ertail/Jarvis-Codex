@@ -21,8 +21,18 @@ SCRIPT_NAMES = (
 )
 
 
-def add(results: list[dict[str, str]], source: Path, command: str) -> None:
-    item = {"source": str(source), "command": command}
+def relative_dir(root: Path, path: Path) -> str:
+    relative = path.relative_to(root)
+    return "." if relative == Path(".") else str(relative)
+
+
+def add(
+    results: list[dict[str, str]],
+    source: Path,
+    command: str,
+    cwd: str,
+) -> None:
+    item = {"source": str(source), "cwd": cwd, "command": command}
     if item not in results:
         results.append(item)
 
@@ -40,7 +50,12 @@ def discover(root: Path) -> list[dict[str, str]]:
         prefix = "npm run"
         for name in SCRIPT_NAMES:
             if name in scripts:
-                add(results, package_json.relative_to(root), f"{prefix} {name}")
+                add(
+                    results,
+                    package_json.relative_to(root),
+                    f"{prefix} {name}",
+                    relative_dir(root, package_json.parent),
+                )
 
     candidates = {
         "Makefile": ("make test", "make lint", "make check"),
@@ -56,11 +71,21 @@ def discover(root: Path) -> list[dict[str, str]]:
             if ".git" in path.parts:
                 continue
             for command in commands:
-                add(results, path.relative_to(root), command)
+                add(
+                    results,
+                    path.relative_to(root),
+                    command,
+                    relative_dir(root, path.parent),
+                )
 
     for workflow_dir in (root / ".github" / "workflows", root / ".gitlab"):
         if workflow_dir.exists():
-            add(results, workflow_dir.relative_to(root), "Inspect CI workflow for canonical checks")
+            add(
+                results,
+                workflow_dir.relative_to(root),
+                "Inspect CI workflow for canonical checks",
+                ".",
+            )
 
     return results
 
