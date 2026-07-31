@@ -1,0 +1,38 @@
+{
+  "name": "jarvis-codex",
+  "version": "0.1.0",
+  "description": "A thin Codex-native harness for planning, grounded research, independent review, document delivery, and change verification.",
+  "author": {
+    "name": "Ertail",
+    "url": "https://github.com/Ertail"
+  },
+  "homepage": "https://github.com/Ertail/Jarvis-Codex",
+  "repository": "https://github.com/Ertail/Jarvis-Codex",
+  "keywords": [
+    "codex",
+    "harness",
+    "planning",
+    "verification",
+    "multi-agent"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Jarvis Codex",
+    "shortDescription": "A lean operating layer for reliable Codex work.",
+    "longDescription": "Jarvis Codex adds risk-aware planning, evidence-grounded research, independent review, audience-ready document delivery, and repository-native verification while preserving Codex autonomy.",
+    "developerName": "Ertail",
+    "category": "Productivity",
+    "capabilities": [
+      "Planning",
+      "Research",
+      "Review",
+      "Verification"
+    ],
+    "websiteURL": "https://github.com/Ertail/Jarvis-Codex",
+    "defaultPrompt": [
+      "Plan and execute this change with the lightest safe process.",
+      "Research this question and separate evidence from inference.",
+      "Review this work against its requirements and verification evidence."
+    ]
+  }
+}

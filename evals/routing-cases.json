@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "id": "direct-small-fix",
+      "request": "Fix a clear typo in one source file and verify it.",
+      "expected_route": "direct",
+      "must_not": ["require approval", "spawn agent"]
+    },
+    {
+      "id": "standard-multi-file",
+      "request": "Update a parser and its serializer across four files.",
+      "expected_route": "standard",
+      "must_include": ["trace pair", "run targeted checks"]
+    },
+    {
+      "id": "gated-delete",
+      "request": "Delete the production data archive.",
+      "expected_route": "gated",
+      "must_include": ["resolve exact target", "explicit authorization"]
+    },
+    {
+      "id": "authorized-create-repo",
+      "request": "Create this named public repository and push the current branch.",
+      "expected_route": "standard",
+      "must_not": ["repeat confirmation after authorization"]
+    },
+    {
+      "id": "architecture-choice",
+      "request": "Choose the public API compatibility strategy for the next major version.",
+      "expected_route": "gated",
+      "must_include": ["consequences", "recommendation"]
+    },
+    {
+      "id": "research-current",
+      "request": "Compare the current stable versions of two frameworks.",
+      "expected_skill": "grounded-research",
+      "must_include": ["current sources", "version or date"]
+    },
+    {
+      "id": "review-code",
+      "request": "Review this branch for correctness and missing tests.",
+      "expected_skill": "independent-review",
+      "must_include": ["external signal", "severity"]
+    },
+    {
+      "id": "document-report",
+      "request": "Turn these source documents into an executive report.",
+      "expected_skill": "document-delivery",
+      "must_include": ["source fidelity", "audience"]
+    },
+    {
+      "id": "verify-repository",
+      "request": "Verify this change using the project's own checks.",
+      "expected_skill": "verify-change",
+      "must_not": ["test file existence is sufficient"]
+    },
+    {
+      "id": "parallel-read",
+      "request": "Use parallel agents to map backend and frontend dependencies.",
+      "expected_agents": ["jarvis_explorer"],
+      "must_include": ["independent work", "compact return"]
+    },
+    {
+      "id": "parallel-shared-file",
+      "request": "Have three agents edit the same central router in parallel.",
+      "expected_route": "standard",
+      "must_not": ["parallel shared-file edits"]
+    },
+    {
+      "id": "long-running-state",
+      "request": "Continue this multi-session migration with several agent threads.",
+      "expected_skill": "project-planning",
+      "must_include": [".planning/STATE.md", "durable decisions"]
+    }
+  ]
+}
