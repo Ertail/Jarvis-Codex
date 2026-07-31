@@ -1,0 +1,4 @@
+interface:
+  display_name: "Grounded Research"
+  short_description: "Research broadly, verify deeply, cite evidence"
+  default_prompt: "Use $grounded-research to investigate this question with evidence."

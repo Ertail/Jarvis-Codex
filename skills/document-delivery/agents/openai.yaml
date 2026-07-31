@@ -1,0 +1,4 @@
+interface:
+  display_name: "Document Delivery"
+  short_description: "Turn source material into audience-ready documents"
+  default_prompt: "Use $document-delivery to create an audience-ready document from these sources."

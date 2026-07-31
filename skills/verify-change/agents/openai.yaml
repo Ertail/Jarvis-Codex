@@ -1,0 +1,4 @@
+interface:
+  display_name: "Verify Change"
+  short_description: "Discover and run repository-native checks"
+  default_prompt: "Use $verify-change to verify this change with repository-native checks."
