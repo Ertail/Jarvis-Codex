@@ -56,6 +56,12 @@
       "must_include": ["Korean", "HTML", "all figures", "source fidelity"]
     },
     {
+      "id": "paper-explainer-ko-short-trigger",
+      "request": "이 논문을 한국어로 쉽게 설명해줘.",
+      "expected_skills": ["paper-explainer-ko", "doc-style"],
+      "must_include": ["Korean", "HTML", "paper"]
+    },
+    {
       "id": "document-style-switch",
       "request": "앞으로 생성하는 문서 스타일을 등록된 다른 스타일로 바꿔줘.",
       "expected_skill": "doc-style",

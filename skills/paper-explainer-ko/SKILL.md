@@ -1,6 +1,6 @@
 ---
 name: paper-explainer-ko
-description: Turn an academic-paper PDF into a faithful, self-contained Korean HTML explainer with chapter-level summaries, detailed walkthroughs, and every relevant figure and table. Use when Maverick provides or points to a research-paper or arXiv PDF and asks for a Korean explanation, summary, translation, study guide, document, or webpage, even when HTML or a skill is not explicitly mentioned.
+description: Turn an academic-paper PDF into a faithful, self-contained Korean HTML explainer with chapter-level summaries, detailed walkthroughs, and every relevant figure and table. Always use when Maverick provides, attaches, or refers to a paper or research PDF and asks for a Korean explanation, summary, translation, study guide, document, or webpage, even when HTML or a skill is not explicitly mentioned. Explicit Korean triggers include "이 논문을 한국어로 쉽게 설명해줘", "이 논문 PDF를 그림과 표를 포함해서 한국어로 쉽게 설명해줘", "논문을 한글로 요약해줘", and equivalent wording.
 ---
 
 # Korean Paper Explainer
