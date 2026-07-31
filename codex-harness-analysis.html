@@ -1,0 +1,599 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Jarvis Harness → Codex 이식 분석</title>
+  <style>
+    :root {
+      --ink: #17201d;
+      --muted: #64716b;
+      --paper: #f5f2e9;
+      --sheet: #fffdf7;
+      --line: #d9d4c6;
+      --green: #176b55;
+      --green-soft: #dcece5;
+      --amber: #9b5d16;
+      --amber-soft: #f5e8d2;
+      --red: #9a4038;
+      --red-soft: #f4dfda;
+      --blue: #315e7b;
+      --blue-soft: #dfeaf0;
+      --navy: #223c4c;
+      --shadow: 0 16px 44px rgba(40, 46, 41, .09);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 10% 0%, rgba(23,107,85,.08), transparent 30rem),
+        radial-gradient(circle at 100% 18%, rgba(155,93,22,.08), transparent 28rem),
+        var(--paper);
+      font-family: Pretendard, "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.68;
+      word-break: keep-all;
+    }
+    a { color: var(--blue); text-underline-offset: 3px; }
+    code {
+      padding: .12rem .38rem;
+      border-radius: .35rem;
+      background: #ece8dc;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: .9em;
+    }
+    .page { width: min(1180px, calc(100% - 32px)); margin: 0 auto; }
+    .hero {
+      padding: 70px 0 48px;
+      border-bottom: 1px solid var(--line);
+    }
+    .eyebrow {
+      margin: 0 0 13px;
+      color: var(--green);
+      font-size: .78rem;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    h1, h2, h3 { line-height: 1.25; letter-spacing: -.035em; }
+    h1 { max-width: 880px; margin: 0; font-size: clamp(2.35rem, 5vw, 5rem); font-weight: 850; }
+    .hero-copy { max-width: 790px; margin: 22px 0 0; color: var(--muted); font-size: clamp(1rem, 1.7vw, 1.2rem); }
+    .verdict {
+      display: grid;
+      grid-template-columns: 1.25fr .75fr;
+      gap: 24px;
+      margin-top: 36px;
+      padding: 26px;
+      border: 1px solid #bfd5ca;
+      border-radius: 22px;
+      background: rgba(255,253,247,.82);
+      box-shadow: var(--shadow);
+    }
+    .verdict strong { display: block; margin-bottom: 7px; color: var(--green); font-size: 1.05rem; }
+    .verdict p { margin: 0; }
+    .score { display: flex; align-items: center; justify-content: center; gap: 15px; border-left: 1px solid var(--line); }
+    .score b { font-size: 3rem; line-height: 1; }
+    .score span { color: var(--muted); font-size: .82rem; }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 22px;
+      margin-top: 25px;
+      color: var(--muted);
+      font-size: .84rem;
+    }
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      border-bottom: 1px solid var(--line);
+      background: rgba(245,242,233,.92);
+      backdrop-filter: blur(12px);
+    }
+    .nav-inner { display: flex; gap: 9px; padding: 11px 0; overflow-x: auto; scrollbar-width: none; }
+    .nav a {
+      flex: 0 0 auto;
+      padding: 7px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--ink);
+      background: var(--sheet);
+      font-size: .83rem;
+      text-decoration: none;
+    }
+    main { padding: 20px 0 80px; }
+    section { padding: 56px 0 10px; scroll-margin-top: 60px; }
+    .section-head { display: grid; grid-template-columns: 210px 1fr; gap: 30px; margin-bottom: 26px; }
+    .section-no { color: var(--green); font-family: Georgia, serif; font-size: 1.15rem; }
+    h2 { margin: 0; font-size: clamp(1.75rem, 3.3vw, 2.8rem); }
+    .section-head p { max-width: 760px; margin: 12px 0 0; color: var(--muted); }
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .card {
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--sheet);
+      box-shadow: 0 8px 24px rgba(40,46,41,.045);
+    }
+    .card h3 { margin: 0 0 9px; font-size: 1.05rem; }
+    .card p { margin: 0; color: var(--muted); font-size: .92rem; }
+    .card .big { display: block; margin-bottom: 8px; color: var(--navy); font-size: 2.25rem; font-weight: 850; line-height: 1; }
+    .architecture {
+      display: grid;
+      grid-template-columns: 1fr 90px 1fr;
+      align-items: stretch;
+      gap: 10px;
+    }
+    .arch-box { padding: 24px; border-radius: 20px; }
+    .arch-box.old { border: 1px solid #e6c8be; background: var(--red-soft); }
+    .arch-box.new { border: 1px solid #bcd7cb; background: var(--green-soft); }
+    .arch-box h3 { margin: 0 0 14px; font-size: 1.15rem; }
+    .arch-box ul { margin: 0; padding-left: 20px; }
+    .arch-box li + li { margin-top: 8px; }
+    .arrow { display: grid; place-items: center; color: var(--green); font-size: 2.5rem; }
+    .distribution {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 28px;
+      align-items: center;
+      margin-top: 24px;
+    }
+    .donut-wrap { position: relative; width: 250px; margin: auto; }
+    .donut { width: 100%; transform: rotate(-90deg); }
+    .donut circle { fill: none; stroke-width: 9; }
+    .donut .track { stroke: #e5e0d4; }
+    .donut .keep { stroke: var(--green); stroke-dasharray: 24 76; stroke-dashoffset: 0; }
+    .donut .change { stroke: var(--amber); stroke-dasharray: 52 48; stroke-dashoffset: -24; }
+    .donut .drop { stroke: var(--red); stroke-dasharray: 24 76; stroke-dashoffset: -76; }
+    .donut-label { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
+    .donut-label b { font-size: 2.5rem; line-height: 1; }
+    .donut-label span { color: var(--muted); font-size: .8rem; }
+    .legend { display: grid; gap: 12px; }
+    .legend-row { display: grid; grid-template-columns: 14px 110px 1fr; gap: 10px; align-items: baseline; }
+    .swatch { width: 11px; height: 11px; border-radius: 3px; }
+    .legend-row b { font-size: .92rem; }
+    .legend-row span:last-child { color: var(--muted); font-size: .9rem; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; }
+    button {
+      padding: 8px 13px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--ink);
+      background: var(--sheet);
+      font: inherit;
+      font-size: .85rem;
+      cursor: pointer;
+    }
+    button[aria-pressed="true"] { color: #fff; border-color: var(--navy); background: var(--navy); }
+    .decision-list { display: grid; gap: 13px; }
+    .decision {
+      display: grid;
+      grid-template-columns: 126px 1.1fr 1.4fr 74px;
+      gap: 16px;
+      align-items: start;
+      padding: 18px 20px;
+      border: 1px solid var(--line);
+      border-left-width: 5px;
+      border-radius: 14px;
+      background: var(--sheet);
+    }
+    .decision[data-kind="keep"] { border-left-color: var(--green); }
+    .decision[data-kind="change"] { border-left-color: var(--amber); }
+    .decision[data-kind="drop"] { border-left-color: var(--red); }
+    .decision[data-kind="add"] { border-left-color: var(--blue); }
+    .tag {
+      display: inline-block;
+      width: fit-content;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: .74rem;
+      font-weight: 800;
+    }
+    .keep .tag { color: var(--green); background: var(--green-soft); }
+    .change .tag { color: var(--amber); background: var(--amber-soft); }
+    .drop .tag { color: var(--red); background: var(--red-soft); }
+    .add .tag { color: var(--blue); background: var(--blue-soft); }
+    .decision h3 { margin: 2px 0 5px; font-size: 1rem; }
+    .decision p { margin: 0; color: var(--muted); font-size: .88rem; }
+    .priority { font-weight: 850; font-size: .82rem; text-align: right; }
+    .matrix {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      grid-template-rows: 1fr 30px;
+      gap: 8px;
+      max-width: 920px;
+      margin: 10px auto 0;
+    }
+    .matrix-y { writing-mode: vertical-rl; transform: rotate(180deg); color: var(--muted); text-align: center; font-size: .8rem; }
+    .matrix-x { grid-column: 2; color: var(--muted); text-align: center; font-size: .8rem; }
+    .quadrants {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 470px;
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(to right, transparent calc(50% - .5px), var(--line) 50%, transparent calc(50% + .5px)),
+        linear-gradient(to bottom, transparent calc(50% - .5px), var(--line) 50%, transparent calc(50% + .5px)),
+        var(--sheet);
+    }
+    .quad { padding: 22px; }
+    .quad h3 { margin: 0 0 14px; color: var(--muted); font-size: .82rem; letter-spacing: .06em; text-transform: uppercase; }
+    .chip { display: inline-block; margin: 4px 3px; padding: 6px 9px; border-radius: 8px; background: var(--green-soft); font-size: .82rem; }
+    .quad:nth-child(2) .chip { background: var(--blue-soft); }
+    .quad:nth-child(3) .chip { background: #ece8dc; }
+    .quad:nth-child(4) .chip { background: var(--amber-soft); }
+    .risks { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .risk { padding: 20px; border-top: 4px solid var(--red); background: var(--sheet); }
+    .risk h3 { margin: 0 0 6px; font-size: 1rem; }
+    .risk p { margin: 0; color: var(--muted); font-size: .9rem; }
+    .roadmap { position: relative; display: grid; gap: 16px; margin-left: 18px; }
+    .roadmap::before { content: ""; position: absolute; top: 15px; bottom: 15px; left: 15px; width: 2px; background: var(--line); }
+    .phase { position: relative; display: grid; grid-template-columns: 31px 120px 1fr; gap: 16px; align-items: start; }
+    .dot { z-index: 1; display: grid; place-items: center; width: 31px; height: 31px; border-radius: 50%; color: white; background: var(--green); font-size: .75rem; font-weight: 800; }
+    .phase > b { padding-top: 4px; }
+    .phase-body { padding: 0 0 20px; }
+    .phase-body p { margin: 0 0 7px; }
+    .phase-body small { color: var(--muted); }
+    .blueprint { overflow-x: auto; border: 1px solid var(--line); border-radius: 18px; background: var(--sheet); }
+    .tree { min-width: 650px; margin: 0; padding: 24px; font-family: "SFMono-Regular", Consolas, monospace; font-size: .86rem; line-height: 1.75; white-space: pre; }
+    table { width: 100%; border-collapse: collapse; background: var(--sheet); }
+    th, td { padding: 14px; border-bottom: 1px solid var(--line); vertical-align: top; text-align: left; font-size: .88rem; }
+    th { color: var(--muted); font-size: .77rem; letter-spacing: .04em; text-transform: uppercase; }
+    .evidence { display: grid; gap: 12px; }
+    details { border: 1px solid var(--line); border-radius: 12px; background: var(--sheet); }
+    summary { padding: 14px 17px; cursor: pointer; font-weight: 750; }
+    details div { padding: 0 17px 16px; color: var(--muted); font-size: .9rem; }
+    footer { padding: 30px 0 55px; border-top: 1px solid var(--line); color: var(--muted); font-size: .83rem; }
+    .hidden { display: none; }
+    @media (max-width: 820px) {
+      .verdict, .section-head, .distribution { grid-template-columns: 1fr; }
+      .score { justify-content: flex-start; padding-top: 18px; border-top: 1px solid var(--line); border-left: 0; }
+      .cards { grid-template-columns: 1fr; }
+      .architecture { grid-template-columns: 1fr; }
+      .arrow { transform: rotate(90deg); }
+      .decision { grid-template-columns: 100px 1fr; }
+      .decision > div:nth-child(3) { grid-column: 2; }
+      .priority { grid-column: 1; grid-row: 2; text-align: left; }
+      .risks { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      .page { width: min(100% - 22px, 1180px); }
+      .hero { padding-top: 45px; }
+      .decision { grid-template-columns: 1fr; gap: 9px; }
+      .decision > div:nth-child(3), .priority { grid-column: 1; grid-row: auto; }
+      .quadrants { min-height: 0; grid-template-columns: 1fr; background: var(--sheet); }
+      .quad { border-bottom: 1px solid var(--line); }
+      .phase { grid-template-columns: 31px 1fr; }
+      .phase > b { grid-column: 2; }
+      .phase-body { grid-column: 2; }
+    }
+    @media print {
+      .nav, .toolbar { display: none; }
+      body { background: white; }
+      .card, .verdict { box-shadow: none; }
+      section { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="page">
+      <p class="eyebrow">Platform-fit review · 2026-07-31</p>
+      <h1>Jarvis의 철학은 살리고,<br>Claude의 골격은 걷어낸다.</h1>
+      <p class="hero-copy">
+        <a href="https://github.com/Ertail/Custom-Plugins">Ertail/Custom-Plugins</a>의 현재 HEAD를
+        Codex의 공식 실행 모델과 대조했다. 결론은 “직접 복제”가 아니라
+        <strong>핵심 원칙을 Codex 네이티브 표면에 재배치하는 얇은 하네스</strong>다.
+      </p>
+      <div class="verdict">
+        <div>
+          <strong>한 줄 판정</strong>
+          <p>
+            영향 범위 분석, 검증, 외부 접지, 반환 계약, 컨텍스트 위생은 매우 좋다.
+            반면 강제 위임·과도한 승인 게이트·수동 worktree/merge·Claude 전용 훅과 도구는
+            Codex의 자율 실행과 네이티브 기능을 방해하므로 재설계가 필요하다.
+          </p>
+        </div>
+        <div class="score" aria-label="개념 재사용성 76점, 구현 직접 호환성 31점">
+          <b>76</b><span>개념 재사용성<br><b style="font-size:1.35rem">31</b> 구현 직접 호환성</span>
+        </div>
+      </div>
+      <div class="meta">
+        <span>분석 기준 커밋 <code>67cddeb01a4e</code></span>
+        <span>핵심 지침·에이전트·패턴·프로토콜·스킬 약 5,615줄</span>
+        <span>공식 Codex Manual 2026-07-31 갱신본 대조</span>
+      </div>
+    </div>
+  </header>
+
+  <nav class="nav" aria-label="리포트 목차">
+    <div class="page nav-inner">
+      <a href="#inventory">현재 구조</a>
+      <a href="#translation">플랫폼 번역</a>
+      <a href="#decisions">판정 목록</a>
+      <a href="#priority">우선순위</a>
+      <a href="#gaps">리스크·누락</a>
+      <a href="#roadmap">이식 로드맵</a>
+      <a href="#blueprint">권장 구조</a>
+      <a href="#evidence">근거</a>
+    </div>
+  </nav>
+
+  <main class="page">
+    <section id="inventory">
+      <div class="section-head">
+        <div class="section-no">01 / INVENTORY</div>
+        <div>
+          <h2>잘 만든 “에이전트 운영체제”지만, 이미 자체 프레임워크가 되었다</h2>
+          <p>전체 시스템은 단순한 개인화 프롬프트가 아니라 라우터, 역할 카탈로그, 실행 프로토콜, 품질 게이트, 상태 저장소, 설치기까지 가진 별도 런타임에 가깝다.</p>
+        </div>
+      </div>
+      <div class="cards">
+        <article class="card"><span class="big">6+1</span><h3>코어/역할 에이전트</h3><p>Arch, Pixel, Volt, Coil, Probe, Weave와 Jarvis가 직접 전환하는 Muse. 역할 경계는 명확하지만 Codex에서는 일부가 기본 역량과 중복된다.</p></article>
+        <article class="card"><span class="big">4 × 9</span><h3>동적 템플릿과 패턴</h3><p>Generator/Evaluator/Analyst/Synthesizer에 review-loop, research-scan, PCAR 등을 조합한다. 가장 재사용 가치가 높은 층이다.</p></article>
+        <article class="card"><span class="big">3 + 9</span><h3>프로토콜과 스킬</h3><p>브레인스토밍·개발·문서 프로토콜, PDF·slidegen·doc-style·design 등. 이 가운데 다수는 Codex의 번들 스킬과 기능이 겹친다.</p></article>
+      </div>
+      <div class="distribution">
+        <div class="donut-wrap">
+          <svg class="donut" viewBox="0 0 42 42" role="img" aria-label="판정 분포: 유지 24%, 수정 52%, 제거 24%">
+            <circle class="track" cx="21" cy="21" r="15.9"></circle>
+            <circle class="keep" cx="21" cy="21" r="15.9" pathLength="100"></circle>
+            <circle class="change" cx="21" cy="21" r="15.9" pathLength="100"></circle>
+            <circle class="drop" cx="21" cy="21" r="15.9" pathLength="100"></circle>
+          </svg>
+          <div class="donut-label"><b>21</b><span>핵심 판정 항목</span></div>
+        </div>
+        <div class="legend">
+          <div class="legend-row"><span class="swatch" style="background:var(--green)"></span><b>그대로 유지 5</b><span>철학과 품질 규칙은 플랫폼 독립적이다.</span></div>
+          <div class="legend-row"><span class="swatch" style="background:var(--amber)"></span><b>수정 후 유지 11</b><span>좋은 의도지만 Codex 표면과 실행 모델에 맞게 바꿔야 한다.</span></div>
+          <div class="legend-row"><span class="swatch" style="background:var(--red)"></span><b>제거/대체 5</b><span>Claude 전용이거나 Codex 네이티브 기능과 중복된다.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="translation">
+      <div class="section-head">
+        <div class="section-no">02 / TRANSLATION</div>
+        <div>
+          <h2>파일을 옮기는 일이 아니라 책임을 다시 배치하는 일</h2>
+          <p>Codex는 저장소 지침, 재사용 워크플로, 설치 단위, 외부 도구, 병렬 에이전트, worktree를 각각 별도 네이티브 표면으로 제공한다.</p>
+        </div>
+      </div>
+      <div class="architecture">
+        <article class="arch-box old">
+          <h3>현재 Claude 중심 구조</h3>
+          <ul>
+            <li><code>CLAUDE.md</code>가 라우팅·승인·정체성·안전까지 모두 소유</li>
+            <li>코어 에이전트가 구현/테스트/merge의 고정 관문</li>
+            <li>패턴 파일이 런타임 오케스트레이션 문법 역할</li>
+            <li><code>install.sh</code>가 글로벌 설정과 훅을 직접 복사</li>
+            <li>Weave가 worktree 생명주기와 self-push merge를 직접 구현</li>
+          </ul>
+        </article>
+        <div class="arrow" aria-hidden="true">→</div>
+        <article class="arch-box new">
+          <h3>권장 Codex 구조</h3>
+          <ul>
+            <li><code>AGENTS.md</code>: 짧고 지속적인 저장소 규칙만</li>
+            <li><code>skills/</code>: PCAR·review·research·document 등 반복 워크플로</li>
+            <li><code>agents/</code>: 실제로 다른 도구·모델·병렬성이 필요한 역할만</li>
+            <li>Codex plugin/import: 설치·변환·업데이트 경로</li>
+            <li>native subagents + managed worktrees + Handoff 우선</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section id="decisions">
+      <div class="section-head">
+        <div class="section-no">03 / DECISIONS</div>
+        <div>
+          <h2>무엇을 살리고, 고치고, 버릴 것인가</h2>
+          <p>필터를 눌러 분류별 항목을 볼 수 있다. P0는 첫 이식에서 반드시 반영할 항목이다.</p>
+        </div>
+      </div>
+      <div class="toolbar" role="group" aria-label="판정 필터">
+        <button type="button" data-filter="all" aria-pressed="true">전체 21</button>
+        <button type="button" data-filter="keep" aria-pressed="false">유지 5</button>
+        <button type="button" data-filter="change" aria-pressed="false">수정 11</button>
+        <button type="button" data-filter="drop" aria-pressed="false">제거 5</button>
+      </div>
+      <div class="decision-list">
+        <article class="decision keep" data-kind="keep"><div><span class="tag">그대로 유지</span></div><div><h3>영향 범위 분석</h3><p>호출자/피호출자와 save↔load, request↔handler 같은 쌍을 먼저 확인한다.</p></div><div><p>Codex의 코드 수정 품질을 직접 높이는 플랫폼 독립 규칙. <code>AGENTS.md</code>의 “변경 전” 섹션으로 옮긴다.</p></div><div class="priority">P0</div></article>
+        <article class="decision keep" data-kind="keep"><div><span class="tag">그대로 유지</span></div><div><h3>완료 검증 의무</h3><p>구문·실행·일관성 검증 뒤에만 완료를 선언한다.</p></div><div><p>Codex의 자율 실행 철학과 정확히 맞는다. 단, “항상 60초”는 프로젝트별 명령으로 구체화한다.</p></div><div class="priority">P0</div></article>
+        <article class="decision keep" data-kind="keep"><div><span class="tag">그대로 유지</span></div><div><h3>외부 접지 검증</h3><p>작성자와 검토자를 분리하고, 테스트·원본·독립 관점을 근거로 삼는다.</p></div><div><p>자기평가 루프의 허점을 잘 짚었다. review skill의 핵심 불변조건으로 유지한다.</p></div><div class="priority">P0</div></article>
+        <article class="decision keep" data-kind="keep"><div><span class="tag">그대로 유지</span></div><div><h3>압축 반환 계약</h3><p>상태·요약·변경 파일·검증·블로커·다음 단계만 반환한다.</p></div><div><p>Codex subagent의 메인 컨텍스트 오염을 줄이는 데 특히 유용하다. 에이전트 공통 footer로 사용한다.</p></div><div class="priority">P0</div></article>
+        <article class="decision keep" data-kind="keep"><div><span class="tag">그대로 유지</span></div><div><h3>블랙보드 원칙</h3><p>실질 상태는 파일에, 메시지는 제어 신호에 둔다.</p></div><div><p>긴 멀티에이전트 작업에 유효하다. 다만 모든 작업에 <code>STATE.md</code>를 강제하지는 않는다.</p></div><div class="priority">P1</div></article>
+
+        <article class="decision change" data-kind="change"><div><span class="tag">수정 후 유지</span></div><div><h3><code>CLAUDE.md</code> → <code>AGENTS.md</code></h3><p>정체성, 라우팅, 안전, 개발 규칙이 한 파일에 집중돼 있다.</p></div><div><p>루트에는 32 KiB 기본 한도를 의식해 핵심 규칙만 두고, 디렉터리별 <code>AGENTS.override.md</code>와 skills로 분리한다.</p></div><div class="priority">P0</div></article>
+        <article class="decision change" data-kind="change"><div><span class="tag">수정 후 유지</span></div><div><h3>PCAR 승인 모델</h3><p>3단계·3파일·첫 작업이면 모두 사전 승인을 요구한다.</p></div><div><p>Codex의 “합리적 가정 후 실행”과 충돌한다. 승인은 파괴적 작업, 외부 변경, 고비용 설계 결정, 명백한 선택 분기에만 제한한다.</p></div><div class="priority">P0</div></article>
+        <article class="decision change" data-kind="change"><div><span class="tag">수정 후 유지</span></div><div><h3>위임 기본값</h3><p>장문·3파일 이상·코드 구현을 거의 항상 에이전트로 보낸다.</p></div><div><p>Codex는 사용자의 명시 요청이나 AGENTS/skill 지시가 있을 때 subagent를 쓰는 모델이다. 병렬성이 실익이 있는 읽기·테스트·독립 구현에만 사용한다.</p></div><div class="priority">P0</div></article>
+        <article class="decision change" data-kind="change"><div><span class="tag">수정 후 유지</span></div><div><h3>코어 에이전트 6종</h3><p>Pixel/Volt/Coil/Probe/Weave/Arch가 고유 도구의 독점권을 갖는다.</p></div><div><p>“역할 독점”을 없애고 custom agents는 3개 정도로 축소한다: explorer, reviewer, builder. 프론트/백 구분은 작업 프롬프트나 skill로 충분하다.</p></div><div class="priority">P1</div></article>
+        <article class="decision change" data-kind="change"><div><span class="tag">수정 후 유지</span></div><div><h3>동적 역할 4분류</h3><p>Generator/Evaluator/Analyst/Synthesizer 구분은 명료하다.</p></div><div><p>고정 “에이전트 타입”보다 작업 분해용 사고 모델과 prompt recipe로 유지한다. 실제 agent 생성은 병렬·격리 가치가 있을 때만 한다.</p></div><div class="priority">P1</div></article>
+        <article class="decision change" data-kind="change"><div><span class="tag">수정 후 유지</span></div><div><h3>패턴 라이브러리</h3><p>9개 패턴이 각각 Markdown 실행 규약으로 존재한다.</p></div><div><p>research, review, delivery, planning의 4개 skill로 통합한다. chain/parallel/gate는 각 skill 내부 분기 규칙으로 넣어 탐색 비용을 줄인다.</p></div><div class="priority">P1</div></article>
+        <article class="decision change" data-kind="change"><div><span class="tag">수정 후 유지</span></div><div><h3>모델 티어 라우팅</h3><p>Haiku/Sonnet/Opus와 실패 비용을 연결한다.</p></div><div><p>“실패 비용 기준”은 유지하되 Codex 모델명과 reasoning effort로 재표현한다. 특정 버전 문자열을 장기 지침에 박지 않는다.</p></div><div class="priority">P1</div></article>
+        <article class="decision change" data-kind="change"><div><span class="tag">수정 후 유지</span></div><div><h3><code>.planning/</code> 상태</h3><p>PROJECT·REQUIREMENTS·ROADMAP·STATE를 모든 개발 흐름에 사용한다.</p></div><div><p>중대·장기 작업에만 사용한다. 작은 수정은 task plan과 git diff가 상태 저장소다. 문서가 코드보다 낡지 않도록 생성 조건과 종료 조건을 둔다.</p></div><div class="priority">P1</div></article>
+        <article class="decision change" data-kind="change"><div><span class="tag">수정 후 유지</span></div><div><h3>worktree 병렬 빌드</h3><p>Weave가 생성·모니터링·self-push·정리까지 직접 한다.</p></div><div><p>Codex App의 managed worktree와 Handoff를 우선한다. 수동 worktree는 특수한 대규모 병렬 빌드에만 남기고, master self-push는 제거한다.</p></div><div class="priority">P0</div></article>
+        <article class="decision change" data-kind="change"><div><span class="tag">수정 후 유지</span></div><div><h3>훅 기반 품질 게이트</h3><p>편집 후 Python 구문 검사, 완료 시 테스트 파일 존재 확인.</p></div><div><p>Codex hooks로 포팅 가능하지만 “테스트 파일 하나 존재”는 품질을 보장하지 않는다. 변경 파일별 lint/typecheck/test 명령 매핑으로 바꾼다.</p></div><div class="priority">P1</div></article>
+        <article class="decision change" data-kind="change"><div><span class="tag">수정 후 유지</span></div><div><h3>개발 프로토콜</h3><p>Discover→Design→Plan→Build→Test→Review→Ship의 풀 체인.</p></div><div><p>프로젝트 생성에는 좋지만 일반 수정엔 과하다. small/standard/project 3개 경로로 단순화하고 단계는 필요할 때만 활성화한다.</p></div><div class="priority">P1</div></article>
+
+        <article class="decision drop" data-kind="drop"><div><span class="tag">제거/대체</span></div><div><h3>Claude 전용 설치기</h3><p><code>~/.claude</code>, settings.json, Claude tool names를 직접 복사한다.</p></div><div><p>Codex plugin 구조 또는 데스크톱 Import로 대체한다. <code>--force</code>의 관리 디렉터리 일괄 삭제는 특히 제거한다.</p></div><div class="priority">P0</div></article>
+        <article class="decision drop" data-kind="drop"><div><span class="tag">제거/대체</span></div><div><h3>Agent Team CLI/fallback 분기</h3><p>CLI Agent Team과 Desktop 중개를 별도 규칙으로 관리한다.</p></div><div><p>현재 Codex subagents는 App·CLI·IDE에 공통 노출된다. 별도 fallback 문서를 유지하지 말고 native agent thread를 사용한다.</p></div><div class="priority">P0</div></article>
+        <article class="decision drop" data-kind="drop"><div><span class="tag">제거/대체</span></div><div><h3>statusline·완료 알림</h3><p>Claude JSON payload와 OS 알림 스크립트에 의존한다.</p></div><div><p>Codex App의 네이티브 진행 상태·알림을 사용한다. CLI 전용 요구가 생길 때 별도 opt-in으로 재도입한다.</p></div><div class="priority">P2</div></article>
+        <article class="decision drop" data-kind="drop"><div><span class="tag">제거/대체</span></div><div><h3>중복 문서/미디어 스킬</h3><p>PDF, slidegen, frontend-design 등이 저장소에 자체 구현돼 있다.</p></div><div><p>Codex 번들 PDF·documents·presentations·imagegen·browser·Sites와 겹친다. 고유한 한국어 논문 해설과 house style만 얇은 skill로 남긴다.</p></div><div class="priority">P1</div></article>
+        <article class="decision drop" data-kind="drop"><div><span class="tag">제거/대체</span></div><div><h3>Docker First 절대 규칙</h3><p>모든 테스트와 결과물을 컨테이너 단위로 강제한다.</p></div><div><p>프로젝트 특성과 무관한 전역 강제는 속도와 호환성을 해친다. 저장소가 Docker를 표준으로 쓸 때만 로컬 AGENTS 규칙으로 둔다.</p></div><div class="priority">P1</div></article>
+      </div>
+    </section>
+
+    <section id="priority">
+      <div class="section-head">
+        <div class="section-no">04 / PRIORITY</div>
+        <div>
+          <h2>효과와 이식 난이도로 본 실행 순서</h2>
+          <p>왼쪽 위부터 하는 것이 아니라, 오른쪽 위의 “높은 효과·낮은 난이도”부터 시작한다.</p>
+        </div>
+      </div>
+      <div class="matrix">
+        <div class="matrix-y">효과 낮음 ← 이식 효과 → 높음</div>
+        <div class="quadrants">
+          <div class="quad"><h3>높은 효과 · 높은 난이도</h3><span class="chip">native subagents 재설계</span><span class="chip">managed worktree 전환</span><span class="chip">프로토콜 3단 경량화</span></div>
+          <div class="quad"><h3>높은 효과 · 낮은 난이도</h3><span class="chip">AGENTS.md 최소 코어</span><span class="chip">검증/영향분석 규칙</span><span class="chip">반환 계약</span><span class="chip">승인 게이트 축소</span></div>
+          <div class="quad"><h3>낮은 효과 · 높은 난이도</h3><span class="chip">Claude 디자인 동기화 재현</span><span class="chip">statusline 포팅</span><span class="chip">self-push 호환 레이어</span></div>
+          <div class="quad"><h3>낮은 효과 · 낮은 난이도</h3><span class="chip">호칭/페르소나</span><span class="chip">문서 스타일 토큰</span><span class="chip">알림 문구</span></div>
+        </div>
+        <div class="matrix-x">이식 난이도 낮음 ← 구현 난이도 → 높음</div>
+      </div>
+    </section>
+
+    <section id="gaps">
+      <div class="section-head">
+        <div class="section-no">05 / RISKS & GAPS</div>
+        <div>
+          <h2>현재 저장소에서 먼저 바로잡아야 할 구조적 문제</h2>
+          <p>플랫폼 이식과 별개로, 문서와 실제 파일 사이에 이미 드리프트가 보인다.</p>
+        </div>
+      </div>
+      <div class="risks">
+        <article class="risk"><h3>카탈로그 숫자 불일치</h3><p><code>plugin.json</code>은 스킬 6개라고 하지만 실제 <code>SKILL.md</code>는 9개다. README의 “총 21종” 설명과 현재 코어 6+역할 1+템플릿 4도 맞지 않는다. 수동 숫자 대신 생성형 inventory를 권장한다.</p></article>
+        <article class="risk"><h3>설치 상태 문서 드리프트</h3><p><code>docs/agent-universe.md</code>에는 install.sh와 README가 미완료 TODO로 남아 있지만 둘 다 존재한다. 변경 시 README만 확인하는 훅으로는 이 드리프트를 잡지 못한다.</p></article>
+        <article class="risk"><h3>훅의 거짓 양성/거짓 음성</h3><p>테스트 파일이 저장소에 “하나라도” 있으면 통과하므로 변경 코드의 테스트 여부를 보장하지 못한다. 반대로 실험 코드에도 테스트를 강제해 흐름을 막을 수 있다.</p></article>
+        <article class="risk"><h3>과도한 확인 대기</h3><p>첫 시도, 3단계, 3파일만으로 모두 중단하면 대부분의 실질 작업이 승인 대기로 바뀐다. 안전보다 상호작용 비용이 더 커지는 경계다.</p></article>
+        <article class="risk"><h3>도구·모델 이름의 빠른 노후화</h3><p><code>claude-opus-4-8</code>, <code>Write|Edit|MultiEdit</code>, Agent Team 환경변수처럼 런타임 세부를 역할 문서 전체에 박아 두면 마이그레이션 비용이 커진다.</p></article>
+        <article class="risk"><h3>merge 권한이 한 역할에 과집중</h3><p>Weave의 <code>git push . HEAD:master</code>는 기술적으로 영리하지만, 검증·통합·기준 브랜치 전진을 한 에이전트가 모두 맡는다. branch/PR 또는 Handoff 중심이 감사 가능성과 복구성을 높인다.</p></article>
+      </div>
+
+      <h3 style="margin-top:38px">추가하면 좋은 Codex 네이티브 요소</h3>
+      <div class="cards">
+        <article class="card"><h3>계층형 AGENTS</h3><p>루트에는 공통 계약, 프론트/백/문서 디렉터리에는 가까운 규칙만 둔다. 잘못된 가정을 수정할 때 규칙을 갱신하는 피드백 루프도 포함한다.</p></article>
+        <article class="card"><h3>플러그인 + Import 경로</h3><p>Codex plugin manifest로 배포하고, Claude 설정 사용자는 Desktop의 Import로 instructions·skills·hooks·subagents를 변환한 뒤 검토하도록 한다.</p></article>
+        <article class="card"><h3>커넥터/MCP 라우팅</h3><p>GitHub·Slack·Drive·Notion 같은 사설 데이터는 웹 검색이 아니라 앱 커넥터/MCP를 쓰도록 skill에 명시한다. 인증과 권한 경계도 함께 문서화한다.</p></article>
+        <article class="card"><h3>자동화/장기 작업 규칙</h3><p>주기적 drift check와 장기 모니터링은 상시 에이전트가 아니라 automations·thread continuity로 분리한다.</p></article>
+        <article class="card"><h3>명령 탐지 기반 검증</h3><p>언어별 하드코딩 대신 package scripts, Makefile, CI 설정에서 프로젝트의 실제 검사 명령을 찾아 실행하는 verify skill을 둔다.</p></article>
+        <article class="card"><h3>하네스 자체 eval</h3><p>기존 67개 시나리오 자산을 살려 라우팅 정확도, 불필요 확인 횟수, subagent 사용 적절성, 검증 누락을 회귀 테스트한다.</p></article>
+      </div>
+    </section>
+
+    <section id="roadmap">
+      <div class="section-head">
+        <div class="section-no">06 / ROADMAP</div>
+        <div>
+          <h2>권장 이식은 네 단계면 충분하다</h2>
+          <p>처음부터 모든 Claude 기능을 재현하지 않고, 작은 코어에서 실제 사용 피드백으로 확장한다.</p>
+        </div>
+      </div>
+      <div class="roadmap">
+        <div class="phase"><span class="dot">1</span><b>Core</b><div class="phase-body"><p><strong>AGENTS.md 150~250줄 이내</strong>로 정체성, 안전, 변경 전 영향 분석, 변경 후 검증, 결과 보고만 옮긴다.</p><small>성공 기준: 단일 수정에서 추가 승인 없이 분석→수정→검증→보고가 완료된다.</small></div></div>
+        <div class="phase"><span class="dot">2</span><b>Skills</b><div class="phase-body"><p>research, review, project-planning, document-delivery 4개 skill로 패턴·프로토콜을 통합한다.</p><small>성공 기준: 사용자가 skill 이름을 몰라도 목표 기반 description으로 자동 선택된다.</small></div></div>
+        <div class="phase"><span class="dot">3</span><b>Agents</b><div class="phase-body"><p>explorer, reviewer, builder 3개 custom agent만 먼저 만든다. 명시 요청이나 skill 지시가 있을 때만 병렬 위임한다.</p><small>성공 기준: 읽기/테스트 병렬화는 빨라지고, 동시 편집 충돌은 증가하지 않는다.</small></div></div>
+        <div class="phase"><span class="dot">4</span><b>Package</b><div class="phase-body"><p>Codex plugin으로 패키징하고 hooks·config를 opt-in으로 제공한다. 기존 Claude 사용자는 Import 후 차이 리포트를 확인한다.</p><small>성공 기준: 설치가 사용자 홈 디렉터리 삭제나 전역 덮어쓰기 없이 되돌릴 수 있다.</small></div></div>
+      </div>
+    </section>
+
+    <section id="blueprint">
+      <div class="section-head">
+        <div class="section-no">07 / BLUEPRINT</div>
+        <div>
+          <h2>최소 권장 디렉터리</h2>
+          <p>역할과 패턴의 수를 줄이는 대신, 각 표면이 한 가지 책임만 갖도록 한다.</p>
+        </div>
+      </div>
+      <div class="blueprint">
+<pre class="tree" aria-label="권장 Codex 하네스 디렉터리 구조">jarvis-codex/
+├── AGENTS.md                         # 저장소 공통 계약: 짧고 강하게
+├── .codex/
+│   └── config.toml                   # 프로젝트 설정·hooks·MCP (필요한 것만)
+├── .codex-plugin/
+│   └── plugin.json                   # Codex 플러그인 manifest
+├── agents/
+│   ├── explorer.toml                 # 읽기·조사·로그 분석
+│   ├── reviewer.toml                 # 독립 검증·외부 접지
+│   └── builder.toml                  # 격리 구현; 필요 시에만
+├── skills/
+│   ├── research/SKILL.md             # research-scan + source policy
+│   ├── review/SKILL.md               # review-loop + completeness
+│   ├── project-planning/SKILL.md     # complexity + optional PCAR
+│   ├── document-delivery/SKILL.md    # 문서 프로토콜 + house style
+│   └── verify/SKILL.md               # 실제 프로젝트 명령 탐지·검증
+├── references/
+│   ├── role-recipes.md               # G/E/A/S 사고 프레임
+│   └── migration-from-claude.md       # 대응표·비호환 항목
+└── evals/
+    ├── routing-cases.yaml             # 기존 67개 시나리오 이관
+    └── run-evals.sh                   # 확인 횟수·라우팅·검증 회귀</pre>
+      </div>
+      <div style="margin-top:24px" class="blueprint">
+        <table>
+          <thead><tr><th>Claude 현재 표면</th><th>Codex 권장 표면</th><th>이식 규칙</th></tr></thead>
+          <tbody>
+            <tr><td><code>CLAUDE.md</code></td><td><code>AGENTS.md</code> + nested override</td><td>상시 규칙만 남기고 워크플로는 skill로 분리</td></tr>
+            <tr><td><code>.claude/agents/*.md</code></td><td>custom agents</td><td>도구·모델·격리가 실제로 다를 때만 생성</td></tr>
+            <tr><td><code>.claude/patterns/</code></td><td>skills 내부 분기</td><td>패턴별 파일보다 사용자 목표별 skill</td></tr>
+            <tr><td><code>.claude/settings.json</code></td><td><code>.codex/config.toml</code></td><td>권한·hooks·MCP를 Codex 스키마로 재작성</td></tr>
+            <tr><td><code>install.sh</code></td><td>plugin + Desktop Import</td><td>전역 복사·삭제 대신 설치/해제 가능한 패키지</td></tr>
+            <tr><td>Weave worktrees</td><td>managed worktrees + Handoff</td><td>수동 merge coordinator는 예외 경로로 축소</td></tr>
+            <tr><td>WebSearch/WebFetch</td><td>web + connector/MCP</td><td>공개 정보와 사설 워크스페이스 데이터를 분리</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="evidence">
+      <div class="section-head">
+        <div class="section-no">08 / EVIDENCE</div>
+        <div>
+          <h2>판단 근거와 범위</h2>
+          <p>저장소의 실제 파일과 최신 공식 Codex 문서를 함께 사용했다. 점수는 상대적 의사결정 보조값이며 제품 벤치마크가 아니다.</p>
+        </div>
+      </div>
+      <div class="evidence">
+        <details open><summary>분석한 저장소 근거</summary><div>
+          <a href="https://github.com/Ertail/Custom-Plugins/blob/67cddeb01a4e/CLAUDE.md">CLAUDE.md</a>,
+          <a href="https://github.com/Ertail/Custom-Plugins/tree/67cddeb01a4e/.claude/agents">agents</a>,
+          <a href="https://github.com/Ertail/Custom-Plugins/tree/67cddeb01a4e/.claude/patterns">patterns</a>,
+          <a href="https://github.com/Ertail/Custom-Plugins/tree/67cddeb01a4e/.claude/protocols">protocols</a>,
+          <a href="https://github.com/Ertail/Custom-Plugins/blob/67cddeb01a4e/.claude/standards/agent-protocol.md">agent-protocol.md</a>,
+          <a href="https://github.com/Ertail/Custom-Plugins/blob/67cddeb01a4e/.claude/settings.json">settings.json</a>,
+          <a href="https://github.com/Ertail/Custom-Plugins/blob/67cddeb01a4e/install.sh">install.sh</a>.
+          숨김 디렉터리를 포함한 전체 파일 목록과 주요 지침·스크립트를 읽었다.
+        </div></details>
+        <details open><summary>Codex 공식 근거</summary><div>
+          <a href="https://learn.chatgpt.com/docs/agent-configuration/agents-md">AGENTS.md 계층과 32 KiB 기본 한도</a>,
+          <a href="https://learn.chatgpt.com/docs/agent-configuration/subagents">App·CLI·IDE의 subagent workflow</a>,
+          <a href="https://learn.chatgpt.com/docs/environments/git-worktrees">managed worktree와 Handoff</a>,
+          <a href="https://learn.chatgpt.com/docs/import">다른 에이전트 설정 Import</a>,
+          <a href="https://developers.openai.com/plugins/concepts/skills">skills의 역할과 활성화</a>,
+          <a href="https://developers.openai.com/plugins/build/plugins">Codex plugin 패키징</a>.
+        </div></details>
+        <details><summary>의도적으로 하지 않은 것</summary><div>
+          실제 Codex용 파일 변환·설치·전역 설정 변경은 수행하지 않았다. 이번 산출물은 “무엇을 어떻게 이식할지”에 대한 분석과 권장 설계이며,
+          모델별 비용·성능 벤치마크나 실사용 A/B 테스트는 포함하지 않는다.
+        </div></details>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="page">
+      이 리포트는 <code>Ertail/Custom-Plugins@67cddeb01a4e</code>를 기준으로 작성했다.
+      저장소가 바뀌면 inventory와 판정 수치를 다시 생성하는 것이 좋다.
+    </div>
+  </footer>
+
+  <script>
+    (() => {
+      const buttons = Array.from(document.querySelectorAll("[data-filter]"));
+      const decisions = Array.from(document.querySelectorAll(".decision"));
+      buttons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const filter = button.dataset.filter;
+          buttons.forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
+          decisions.forEach((decision) => {
+            decision.classList.toggle("hidden", filter !== "all" && decision.dataset.kind !== filter);
+          });
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
