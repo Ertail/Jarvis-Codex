@@ -46,8 +46,20 @@
     {
       "id": "document-report",
       "request": "Turn these source documents into an executive report.",
-      "expected_skill": "document-delivery",
-      "must_include": ["source fidelity", "audience"]
+      "expected_skills": ["document-delivery", "doc-style"],
+      "must_include": ["source fidelity", "audience", "HTML", "visualization"]
+    },
+    {
+      "id": "paper-explainer-ko",
+      "request": "이 논문 PDF를 그림과 표를 포함해 한국어로 이해하기 쉽게 설명해줘.",
+      "expected_skills": ["paper-explainer-ko", "doc-style"],
+      "must_include": ["Korean", "HTML", "all figures", "source fidelity"]
+    },
+    {
+      "id": "document-style-switch",
+      "request": "앞으로 생성하는 문서 스타일을 등록된 다른 스타일로 바꿔줘.",
+      "expected_skill": "doc-style",
+      "must_include": ["registered style", "active pointer"]
     },
     {
       "id": "verify-repository",

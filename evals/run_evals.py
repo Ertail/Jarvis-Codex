@@ -16,6 +16,8 @@ REQUIRED_SKILLS = {
     "independent-review",
     "document-delivery",
     "verify-change",
+    "paper-explainer-ko",
+    "doc-style",
 }
 REQUIRED_AGENTS = {
     "jarvis_explorer",
@@ -92,6 +94,7 @@ def validate_routing_fixture_schema() -> None:
     expectation_fields = {
         "expected_route",
         "expected_skill",
+        "expected_skills",
         "expected_agents",
         "must_include",
         "must_not",
@@ -105,6 +108,9 @@ def validate_routing_fixture_schema() -> None:
             if route not in allowed_routes:
                 fail(f"{case['id']}: invalid route {route}")
         if skill := case.get("expected_skill"):
+            if skill not in allowed_skills:
+                fail(f"{case['id']}: invalid skill {skill}")
+        for skill in case.get("expected_skills", []):
             if skill not in allowed_skills:
                 fail(f"{case['id']}: invalid skill {skill}")
         for agent in case.get("expected_agents", []):

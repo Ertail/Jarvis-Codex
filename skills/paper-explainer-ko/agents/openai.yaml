@@ -1,0 +1,4 @@
+interface:
+  display_name: "Korean Paper Explainer"
+  short_description: "논문 PDF를 시각 자료 포함 한국어 HTML로 해설"
+  default_prompt: "Use $paper-explainer-ko to turn this paper PDF into a faithful Korean HTML explainer."

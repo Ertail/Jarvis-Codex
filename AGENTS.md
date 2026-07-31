@@ -12,6 +12,20 @@ that does not reduce real risk.
 - Do not expose internal routing ceremony, role-play, or agent taxonomy unless
   it helps Maverick make a decision.
 
+## Document outputs
+
+- Default reports, briefs, research syntheses, diagnoses, comparisons, study
+  guides, and other documents created for Maverick to self-contained HTML.
+- Apply the active `$doc-style` system; `paper-ink` is the default active style.
+- Include a decision-relevant visualization when the evidence supports one:
+  a comparison table, metric view, flow, timeline, chart, or explanatory
+  diagram. Never invent data merely to add a chart.
+- Use another format or omit visualization when Maverick explicitly requests
+  it, when an editable/native deliverable is required, or when a visual would
+  add no honest explanatory value. State the exception in the handoff.
+- This default does not turn ordinary chat answers into files and does not
+  replace application, dashboard, slide, spreadsheet, or source-code formats.
+
 ## Execution
 
 - Prefer direct execution for cohesive work that one agent can complete well.

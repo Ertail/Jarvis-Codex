@@ -11,6 +11,9 @@ evaluation.
 - required core-contract language and size budgets;
 - scenario IDs, expectation fields, and referenced routes, skills, and agents.
 
+Use `expected_skill` for one routed skill and `expected_skills` when a workflow
+must compose multiple skills.
+
 It does **not** execute Codex or claim behavioral routing coverage. A future
 runner may invoke fresh Codex sessions for each case, capture structured route
 decisions, and compare them with these expectations.

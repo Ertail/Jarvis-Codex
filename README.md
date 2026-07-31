@@ -13,12 +13,14 @@ they materially improve safety or quality.
 
 - A concise [`AGENTS.md`](AGENTS.md) contract for impact analysis, verification,
   state, delegation, and Git hygiene.
-- Five goal-oriented skills:
+- Seven goal-oriented skills:
   - `project-planning`
   - `grounded-research`
   - `independent-review`
   - `document-delivery`
   - `verify-change`
+  - `paper-explainer-ko`
+  - `doc-style`
 - Three project-scoped custom agents:
   - `jarvis_explorer` — read-only evidence gathering
   - `jarvis_reviewer` — independent, evidence-backed review
@@ -63,6 +65,8 @@ Use $grounded-research to compare these technologies.
 Use $independent-review to review this branch against the requirements.
 Use $document-delivery to turn these sources into an executive brief.
 Use $verify-change to discover and run the right checks.
+Use $paper-explainer-ko to turn this paper into a Korean HTML explainer.
+Use $doc-style to preview or switch the active document house style.
 ```
 
 Subagents should be requested explicitly when useful:
@@ -96,6 +100,7 @@ Version `0.1.0` is the first Codex-native baseline:
 
 - Core working agreement: complete
 - Workflow skills: complete
+- Korean paper explainer and swappable HTML house style: complete
 - Minimal custom agents: complete
 - Plugin package and routing scenario catalog: complete
 - Automated model-behavior routing eval: planned

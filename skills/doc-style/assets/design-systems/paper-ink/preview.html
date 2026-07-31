@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>paper-ink — 디자인 시스템 프리뷰</title>
+<style>
+/* ============================================================
+   paper-ink — 문서형 HTML 하우스 디자인 시스템
+   기반: 크림 페이퍼 라이트 팔레트(청록/앰버 세맨틱 페어)
+   + 넓은 캔버스(1080px)와 차트 컴포넌트(바/레이더/카드 그리드)
+   모든 콘텐츠는 1080px 전체 폭을 사용 — 박스·테이블·프로즈의
+   오른쪽 라인이 일직선으로 정렬된다.
+   ============================================================ */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+:root{
+  --paper:#F5F5EF;
+  --paper-2:#FBFBF7;
+  --ink:#17171F;
+  --ink-soft:#4A4A55;
+  --ink-faint:#7C7C86;
+  --line:#E1E0D6;
+  --line-strong:#C9C8BB;
+  /* 세맨틱 컬러 페어: A(주인공/긍정/구조) = 청록, B(대비/주의/함정) = 앰버 */
+  --ar:#0E7C63;
+  --ar-deep:#0A5C4A;
+  --ar-wash:#E4F0EB;
+  --ar-line:#B7D8CD;
+  --arb:#C1611C;
+  --arb-deep:#9A4C13;
+  --arb-wash:#F6E9DA;
+  --arb-line:#E4C29A;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --sans:'Pretendard',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Segoe UI',sans-serif;
+  --maxw:1080px;   /* 캔버스 폭 — 모든 콘텐츠가 전체 폭 사용 */
+}
+
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--sans);
+  font-size:17px;
+  line-height:1.78;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+::selection{background:var(--ar);color:#fff;}
+
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px;}
+
+/* ---------- eyebrow / mono utilities ---------- */
+.mono{font-family:var(--mono);}
+.eyebrow{
+  font-family:var(--mono);
+  font-size:12px;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  color:var(--ink-faint);
+  font-weight:500;
+}
+
+/* ---------- HERO ---------- */
+header.hero{
+  border-bottom:1px solid var(--line-strong);
+  background:linear-gradient(180deg,var(--paper-2),var(--paper));
+  padding:56px 0 40px;
+}
+.venue{
+  display:inline-flex;align-items:center;gap:10px;
+  font-family:var(--mono);font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ar);border:1px solid var(--ar-line);background:var(--ar-wash);
+  padding:6px 12px;border-radius:2px;margin-bottom:26px;font-weight:500;
+}
+.venue .dot{width:6px;height:6px;border-radius:50%;background:var(--ar);display:inline-block;}
+h1.title{
+  font-size:clamp(30px,5.4vw,46px);
+  line-height:1.14;
+  letter-spacing:-.015em;
+  font-weight:800;
+  margin:0 0 8px;
+}
+h1.title .en{
+  display:block;font-size:clamp(15px,2.6vw,19px);
+  font-weight:500;color:var(--ink-soft);letter-spacing:.005em;line-height:1.4;margin-top:14px;
+}
+.thesis{
+  font-size:clamp(18px,2.8vw,21px);
+  line-height:1.6;color:var(--ink-soft);
+  margin:26px 0 0;
+}
+.thesis b{color:var(--ink);font-weight:700;}
+.metaline{
+  margin-top:30px;padding-top:22px;border-top:1px solid var(--line);
+  display:flex;flex-wrap:wrap;gap:22px 40px;font-size:13.5px;color:var(--ink-soft);
+}
+.metaline .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-faint);display:block;margin-bottom:3px;}
+
+/* ---------- table of contents ---------- */
+nav.toc{max-width:var(--maxw);margin:44px auto;padding:0 28px;}
+.toc-inner{border:1px solid var(--line);border-radius:6px;background:var(--paper-2);padding:22px 24px;}
+.toc h2{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-faint);margin:0 0 14px;font-weight:600;}
+.toc ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:2px 28px;}
+.toc li{border-bottom:1px dashed var(--line);}
+.toc a{display:flex;gap:12px;align-items:baseline;padding:9px 2px;color:var(--ink);text-decoration:none;font-size:14.5px;transition:.12s;}
+.toc a:hover{color:var(--ar);}
+.toc a .num{font-family:var(--mono);font-size:11px;color:var(--ink-faint);min-width:22px;}
+
+/* ---------- sections ---------- */
+section.ch{padding:52px 0;border-top:1px solid var(--line);}
+section.ch:first-of-type{border-top:none;}
+.ch-eyebrow{display:flex;align-items:center;gap:14px;margin-bottom:16px;}
+.ch-eyebrow .cnum{
+  font-family:var(--mono);font-weight:700;font-size:13px;letter-spacing:.1em;
+  color:var(--paper-2);background:var(--ink);padding:5px 11px;border-radius:3px;
+}
+.ch-eyebrow .clabel{font-family:var(--mono);font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-faint);}
+h2.ch-title{font-size:clamp(24px,4vw,32px);line-height:1.2;letter-spacing:-.01em;font-weight:800;margin:0 0 22px;}
+h3.sub{font-size:19px;font-weight:700;margin:38px 0 12px;letter-spacing:-.005em;padding-top:4px;}
+h3.sub .en{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--ink-faint);font-weight:500;display:block;margin-top:3px;text-transform:none;}
+p{margin:0 0 17px;}
+.lead{font-size:18.5px;color:var(--ink-soft);}
+strong{font-weight:700;color:var(--ink);}
+.ar-t{color:var(--ar);font-weight:700;}
+.arb-t{color:var(--arb);font-weight:700;}
+code{font-family:var(--mono);font-size:.85em;background:#EAEAE1;padding:2px 6px;border-radius:3px;color:var(--ink);}
+a.ref{color:var(--ar);text-decoration:none;border-bottom:1px solid var(--ar-line);}
+
+/* ---------- TL;DR summary box ---------- */
+.tldr{
+  border-left:3px solid var(--ink);background:var(--paper-2);
+  border-radius:0 6px 6px 0;padding:18px 22px;margin:8px 0 30px;
+}
+.tldr .h{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-faint);font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.tldr .h::before{content:"";width:16px;height:2px;background:var(--ink);display:inline-block;}
+.tldr p{margin:0;font-size:16px;line-height:1.7;}
+.tldr p+p{margin-top:10px;}
+
+/* ---------- callouts ---------- */
+.call{border:1px solid var(--line-strong);border-radius:6px;padding:18px 20px;margin:24px 0;background:var(--paper-2);}
+.call.ar{border-color:var(--ar-line);background:var(--ar-wash);}
+.call.arb{border-color:var(--arb-line);background:var(--arb-wash);}
+.call .ct{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;margin-bottom:7px;}
+.call.ar .ct{color:var(--ar);}
+.call.arb .ct{color:var(--arb);}
+.call p{margin:0;font-size:15.5px;line-height:1.68;}
+
+/* ---------- compare cards (2단) ---------- */
+.versus{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:26px 0;}
+.versus .card{border:1px solid var(--line-strong);border-radius:6px;padding:18px;background:var(--paper-2);}
+.versus .card.ar{border-top:3px solid var(--ar);}
+.versus .card.arb{border-top:3px solid var(--arb);}
+.versus .card h4{margin:0 0 10px;font-size:15px;display:flex;align-items:center;gap:8px;}
+.versus .card h4 .tag{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border-radius:20px;font-weight:600;}
+.versus .card.ar h4 .tag{background:var(--ar-wash);color:var(--ar);}
+.versus .card.arb h4 .tag{background:var(--arb-wash);color:var(--arb);}
+.versus .card ul{margin:0;padding-left:18px;font-size:14px;color:var(--ink-soft);line-height:1.65;}
+.versus .card li{margin-bottom:6px;}
+
+/* ---------- figures (이미지 embed 규격 — max-width:100% 필수) ---------- */
+figure{margin:32px 0;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--paper-2);}
+figure .fig-top{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--line);}
+figure .fig-top .fnum{font-family:var(--mono);font-size:11px;letter-spacing:.1em;font-weight:700;color:var(--paper-2);background:var(--ar);padding:3px 9px;border-radius:3px;}
+figure .fig-top .ftitle{font-size:13px;font-weight:600;color:var(--ink-soft);}
+figure .imgbox{padding:20px;background:#fff;display:flex;justify-content:center;}
+figure img{max-width:100%;height:auto;display:block;}
+figure .fallback{display:none;font-family:var(--mono);font-size:12px;color:var(--ink-faint);text-align:center;padding:30px 16px;line-height:1.6;}
+figure figcaption{padding:14px 18px;font-size:13.5px;color:var(--ink-soft);line-height:1.62;border-top:1px solid var(--line);background:var(--paper-2);}
+figure figcaption b{color:var(--ink);}
+
+/* ---------- 수치 테이블 (센터 정렬·숫자 비교용) ---------- */
+.tbl-wrap{margin:30px 0;border:1px solid var(--line);border-radius:8px;overflow:hidden;}
+.tbl-cap{padding:12px 16px;border-bottom:1px solid var(--line);background:var(--paper-2);font-size:13px;color:var(--ink-soft);}
+.tbl-cap .tn{font-family:var(--mono);font-weight:700;color:var(--ink);letter-spacing:.06em;margin-right:8px;}
+.tbl-scroll{overflow-x:auto;}
+table{border-collapse:collapse;width:100%;font-size:13.5px;background:var(--paper-2);}
+th,td{padding:9px 12px;text-align:center;border-bottom:1px solid var(--line);white-space:nowrap;}
+th{font-family:var(--mono);font-size:11px;letter-spacing:.05em;font-weight:600;color:var(--ink-soft);background:#EFEFE7;}
+td:first-child,th:first-child{text-align:left;position:sticky;left:0;background:var(--paper-2);}
+th:first-child{background:#EFEFE7;}
+tr.hl td{background:var(--ar-wash);font-weight:700;color:var(--ink);}
+tr.hl td:first-child{background:var(--ar-wash);}
+.tbl-foot{padding:10px 16px;font-size:12px;color:var(--ink-faint);border-top:1px solid var(--line);background:var(--paper-2);line-height:1.55;}
+
+/* ---------- 비교 테이블 (좌측 정렬·서술 비교용, sticky 헤더 + hover) ---------- */
+.tbl-compare table{min-width:640px;}
+.tbl-compare th,.tbl-compare td{text-align:left;padding:14px 18px;font-size:14px;white-space:normal;vertical-align:top;}
+.tbl-compare thead th{position:sticky;top:0;background:#EFEFE7;font-family:var(--mono);font-size:12px;letter-spacing:.03em;text-transform:uppercase;color:var(--ink-soft);z-index:2;}
+.tbl-compare thead th.c-ar{color:var(--ar);}
+.tbl-compare thead th.c-arb{color:var(--arb);}
+.tbl-compare tbody tr:hover td{background:rgba(14,124,99,.045);}
+.tbl-compare td:first-child,.tbl-compare th:first-child{position:static;}
+.tbl-compare td.dim{font-weight:600;color:var(--ink);width:20%;}
+.tbl-compare td.dim .d-sub{display:block;font-weight:400;font-size:11.5px;color:var(--ink-faint);font-family:var(--mono);margin-top:2px;}
+.tbl-compare td .yes-ar{color:var(--ar);font-weight:600;}
+.tbl-compare td .yes-arb{color:var(--arb);font-weight:600;}
+.tbl-compare td .no{color:var(--ink-faint);}
+.mini{font-family:var(--mono);font-size:11px;color:var(--ink-faint);}
+
+/* ---------- key stat (숫자 스탯 타일) ---------- */
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:26px 0;}
+.stat{border:1px solid var(--line-strong);border-radius:6px;padding:16px;text-align:center;background:var(--paper-2);}
+.stat .v{font-family:var(--mono);font-size:26px;font-weight:700;color:var(--ar);line-height:1;letter-spacing:-.02em;}
+.stat .v.arb{color:var(--arb);}
+.stat .l{font-size:12px;color:var(--ink-soft);margin-top:8px;line-height:1.4;}
+
+/* ---------- key cards (핵심 요점 카드 3단) ---------- */
+.keys{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:26px 0;}
+.key{background:var(--paper-2);border:1px solid var(--line);border-radius:10px;padding:22px 20px;}
+.key .k-num{font-family:var(--mono);font-size:12px;color:var(--ink-faint);}
+.key h4{margin:12px 0 8px;font-size:17px;font-weight:700;letter-spacing:-.01em;}
+.key p{margin:0;color:var(--ink-soft);font-size:14.5px;line-height:1.6;}
+.key .hl-ar{color:var(--ar);font-weight:600;}
+.key .hl-arb{color:var(--arb);font-weight:600;}
+
+/* ---------- 바 차트 (가로 막대, CSS만으로) ---------- */
+.axis-read{list-style:none;padding:0;margin:26px 0;border:1px solid var(--line);border-radius:10px;background:var(--paper-2);}
+.axis-read li{padding:13px 18px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:160px 1fr;gap:14px;align-items:center;}
+.axis-read li:last-child{border-bottom:none;}
+.axis-read .ax-name{font-weight:700;font-size:14px;}
+.axis-read .ax-name .en{display:block;font-family:var(--mono);font-size:10.5px;color:var(--ink-faint);font-weight:500;margin-top:2px;}
+.axis-read .bars{display:flex;flex-direction:column;gap:5px;}
+.bar{height:9px;border-radius:6px;background:#EDEDE4;overflow:hidden;position:relative;flex:1;}
+.bar i{position:absolute;left:0;top:0;bottom:0;border-radius:6px;display:block;}
+.bar.ar i{background:linear-gradient(90deg,var(--ar-deep),var(--ar));}
+.bar.arb i{background:linear-gradient(90deg,var(--arb-deep),var(--arb));}
+.bar-wrap{display:flex;align-items:center;gap:8px;}
+.bar-wrap .v{font-family:var(--mono);font-size:10.5px;color:var(--ink-faint);width:30px;text-align:right;flex:none;}
+
+/* ---------- 차트 박스 (SVG 레이더/커스텀 차트 컨테이너) ---------- */
+.chart-grid{display:grid;grid-template-columns:minmax(0,460px) 1fr;gap:34px;align-items:center;margin:26px 0;}
+.chart-box{background:var(--paper-2);border:1px solid var(--line);border-radius:10px;padding:22px;display:flex;flex-direction:column;align-items:center;}
+.chart-box svg{width:100%;height:auto;display:block;}
+.chart-legend{display:flex;gap:20px;font-family:var(--mono);font-size:12px;margin-top:10px;flex-wrap:wrap;}
+.chart-legend .li{display:flex;align-items:center;gap:7px;color:var(--ink-soft);}
+.chart-legend .sq{width:12px;height:12px;border-radius:3px;}
+.chart-legend .sq.ar{background:var(--ar);}
+.chart-legend .sq.arb{background:var(--arb);}
+.chart-note{margin:18px 0 0;font-size:13px;color:var(--ink-faint);border-left:2px solid var(--line-strong);padding-left:14px;line-height:1.6;}
+
+/* ---------- 파이프라인 스테이지 (단계 흐름) ---------- */
+.stage-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:26px 0;}
+.stage-row.n3{grid-template-columns:repeat(3,1fr);}
+.stage-row.n4{grid-template-columns:repeat(4,1fr);}
+.stage{border:1px solid var(--line-strong);border-radius:8px;padding:14px 12px;text-align:center;background:var(--paper-2);}
+.stage.ar{border-top:3px solid var(--ar);}
+.stage.arb{border-top:3px solid var(--arb);}
+.stage .st-i{font-family:var(--mono);font-size:10px;color:var(--ink-faint);letter-spacing:.08em;}
+.stage .st-t{font-weight:700;font-size:14px;margin:6px 0 3px;}
+.stage .st-d{font-size:11.5px;color:var(--ink-soft);line-height:1.45;}
+
+/* ---------- pros / cons ---------- */
+.pc-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:26px 0;}
+.pc{background:var(--paper-2);border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+.pc .pc-top{padding:16px 22px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;}
+.pc.ar .pc-top{background:var(--ar-wash);}
+.pc.arb .pc-top{background:var(--arb-wash);}
+.pc .pc-top strong{font-size:17px;}
+.pc .pc-top .t{font-family:var(--mono);font-size:11px;}
+.pc.ar .pc-top .t{color:var(--ar);}
+.pc.arb .pc-top .t{color:var(--arb);}
+.pc-body{padding:20px 22px;}
+.pc-body .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);margin:0 0 8px;}
+.pc-body ul{list-style:none;padding:0;margin:0 0 18px;}
+.pc-body ul:last-child{margin-bottom:0;}
+.pc-body li{font-size:13.5px;color:var(--ink-soft);padding:6px 0 6px 22px;position:relative;line-height:1.5;}
+.pc-body .pros li::before{content:"+";position:absolute;left:0;top:6px;font-family:var(--mono);font-weight:700;}
+.pc.ar .pc-body .pros li::before{color:var(--ar);}
+.pc.arb .pc-body .pros li::before{color:var(--arb);}
+.pc-body .cons li::before{content:"–";position:absolute;left:2px;top:6px;font-family:var(--mono);font-weight:700;color:var(--arb);}
+.pc-body li b{color:var(--ink);}
+
+/* ---------- 칩 ---------- */
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0;}
+.chip{font-family:var(--mono);font-size:10.5px;padding:3px 9px;border-radius:20px;border:1px solid var(--line-strong);color:var(--ink-soft);background:var(--paper-2);}
+.chip.ar{background:var(--ar-wash);border-color:var(--ar-line);color:var(--ar);}
+.chip.arb{background:var(--arb-wash);border-color:var(--arb-line);color:var(--arb);}
+
+/* ---------- glossary ---------- */
+.gloss{display:grid;gap:10px;margin:24px 0;grid-template-columns:1fr 1fr;}
+.gitem{border:1px solid var(--line);border-radius:6px;padding:14px 18px;background:var(--paper-2);}
+.gitem .term{font-weight:700;font-size:15px;margin-bottom:4px;}
+.gitem .term .en{font-family:var(--mono);font-size:11px;color:var(--ink-faint);font-weight:500;margin-left:8px;letter-spacing:.03em;}
+.gitem p{margin:0;font-size:14px;color:var(--ink-soft);line-height:1.6;}
+
+/* ---------- takeaways ---------- */
+.takeaways{border:1px solid var(--line-strong);border-radius:8px;background:var(--paper-2);padding:8px 8px;margin:24px 0;}
+.take{display:flex;gap:16px;padding:16px;border-bottom:1px solid var(--line);}
+.take:last-child{border-bottom:none;}
+.take .n{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--ar);min-width:34px;line-height:1.2;}
+.take .body{font-size:15px;line-height:1.62;}
+.take .body b{color:var(--ink);}
+
+/* ---------- footer ---------- */
+footer{border-top:1px solid var(--line-strong);padding:36px 0 60px;margin-top:20px;}
+footer .wrap{color:var(--ink-faint);font-size:13px;line-height:1.7;}
+footer a{color:var(--ar);text-decoration:none;}
+footer .disc{font-size:12px;margin-top:16px;padding-top:16px;border-top:1px solid var(--line);}
+
+/* ---------- responsive ---------- */
+@media(max-width:900px){
+  .keys{grid-template-columns:1fr;}
+  .chart-grid{grid-template-columns:1fr;}
+  .stage-row,.stage-row.n4{grid-template-columns:1fr 1fr;}
+  .pc-grid{grid-template-columns:1fr;}
+  .gloss{grid-template-columns:1fr;}
+}
+@media(max-width:640px){
+  body{font-size:16px;}
+  .toc ol{grid-template-columns:1fr;}
+  .versus{grid-template-columns:1fr;}
+  .stat-row{grid-template-columns:1fr;}
+  .stage-row,.stage-row.n3,.stage-row.n4{grid-template-columns:1fr;}
+  .axis-read li{grid-template-columns:1fr;gap:8px;}
+  td:first-child,th:first-child{position:static;}
+}
+@media(prefers-reduced-motion:reduce){
+  *{transition:none!important;}
+}
+
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="venue"><span class="dot"></span>DOC-STYLE · PAPER-INK · PREVIEW</div>
+    <h1 class="title">paper-ink 디자인 시스템 프리뷰
+      <span class="en">Cream-paper base + wide 1080px canvas &amp; chart components</span>
+    </h1>
+    <p class="thesis">이 페이지는 <b>모든 컴포넌트를 한눈에</b> 확인하는 갤러리예요. 크림 페이퍼 팔레트와 청록/앰버 세맨틱 페어 위에, 넓은 캔버스(1080px)와 바 차트·레이더·카드 그리드를 얹었어요.</p>
+    <div class="metaline">
+      <div><span class="k">System</span>paper-ink v1</div>
+      <div><span class="k">Base</span>glm5-explained-ko 컬러/타이포</div>
+      <div><span class="k">Charts</span>slime-vs-nemogym 차트/폭</div>
+    </div>
+  </div>
+</header>
+
+<nav class="toc">
+  <div class="toc-inner">
+    <h2>Contents</h2>
+    <ol>
+      <li><a href="#ch1"><span class="num">01</span>텍스트 · TL;DR · 콜아웃</a></li>
+      <li><a href="#ch2"><span class="num">02</span>Figure · 테이블 2종</a></li>
+      <li><a href="#ch3"><span class="num">03</span>스탯 · 키 카드 · 칩</a></li>
+      <li><a href="#ch4"><span class="num">04</span>차트 (바 · 레이더)</a></li>
+      <li><a href="#ch5"><span class="num">05</span>파이프라인 · 비교 카드 · Pros/Cons</a></li>
+      <li><a href="#ch6"><span class="num">06</span>용어 사전 · 한 장 정리</a></li>
+    </ol>
+  </div>
+</nav>
+
+<section class="ch" id="ch1">
+  <div class="wrap">
+    <div class="ch-eyebrow"><span class="cnum">01</span><span class="clabel">TEXT · TLDR · CALLOUTS</span></div>
+    <h2 class="ch-title">본문 텍스트와 요약 박스</h2>
+
+    <div class="tldr">
+      <div class="h">요약</div>
+      <p>모든 챕터는 이 TL;DR 박스로 시작해요. 박스·테이블·프로즈 모두 <strong>1080px 전체 폭</strong>을 사용해 오른쪽 라인이 일직선으로 정렬돼요.</p>
+    </div>
+
+    <p class="lead">리드 문단이에요. 챕터의 첫 문단으로 쓰면 톤이 살짝 부드러워져요.</p>
+    <p>일반 본문이에요. 세맨틱 페어로 <span class="ar-t">구조적 접근(A·청록)</span>과 <span class="arb-t">함정 경로(B·앰버)</span>를 대비시킬 수 있어요. 인라인 코드는 <code>--maxw:1080px</code>처럼 표시되고, 참조 링크는 <a class="ref" href="#">이렇게</a> 보여요. 전문용어는 어텐션(attention)처럼 한글(English) 병기가 기본이에요.</p>
+
+    <div class="call ar">
+      <div class="ct">핵심 포인트</div>
+      <p>청록 콜아웃 — 문서의 주장·정답 경로를 강조할 때 써요.</p>
+    </div>
+    <div class="call arb">
+      <div class="ct">주의</div>
+      <p>앰버 콜아웃 — 함정, 반례, 주의사항을 표시할 때 써요.</p>
+    </div>
+    <div class="call">
+      <div class="ct">중립 노트</div>
+      <p>중립 콜아웃 — 부가 맥락이나 배경 설명에 써요.</p>
+    </div>
+  </div>
+</section>
+
+<section class="ch" id="ch2">
+  <div class="wrap">
+    <div class="ch-eyebrow"><span class="cnum">02</span><span class="clabel">FIGURES · TABLES</span></div>
+    <h2 class="ch-title">Figure와 테이블 2종</h2>
+
+    <div class="tldr">
+      <div class="h">요약</div>
+      <p>Figure는 base64 embed 이미지 규격 그대로예요(<code>max-width:100%</code>). 테이블은 <strong>수치용(센터 정렬)</strong>과 <strong>비교용(좌측 정렬·hover)</strong> 2종이에요.</p>
+    </div>
+
+    <figure>
+      <div class="fig-top"><span class="fnum">FIG 1</span><span class="ftitle">임베드 이미지 렌더 테스트 (data URI)</span></div>
+      <div class="imgbox">
+        <img alt="샘플 차트 이미지" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA7YAAAFTCAIAAACCjgfXAAAYFElEQVR42u3de5BddYHg8d85597b6U6/8iDk2Z1OJ4G8SEIIgcAAUSAEEV+1ljPqDlrjuFa5tbVW4TpaTllr7a4z6q6PFVd8jM6Kio4kvAkBBARMgEhiSCCk8+DVCRgSkiaPTt9zfvvHlbZJgHJ2hKTpz6dSt7pu38c5v3NP9/eenP7dJMYYAACAl6WGAAAAJDIAAEhkAACQyAAAIJEBAEAiAwCARAYAAIkMAAASGQAAJDIAAEhkAACQyAAAIJEBAEAiAwCARAYAAIkMAAASGQAAJDIAAEhkAACQyAAAgEQGAACJDAAAEhkAACQyAABIZAAAkMgAAPBnVnrznzLGmCRJT8/eJzavL5crMUabAQCAo4oxK5Vmz16UJMmQSOSaPM8PHTpQrR7J89yLAACAgZIkLZXKYegcRa5J0zSE2NQ0ckrnzNpxZS8FAABCCNVq38ZHH0zTdMglcqgdP8+yYcMavA4AAAh/PN2gGobauchHVXII0VFkAAD6FUUxpBM5hBBCMuASAACCSd8AAEAiAwCARAYAAIkMAAASGQAAgg+gBgB4ExUxFrEwHdZr5l3qGKhEDifKx4iHEP4tszsP9smhTW4NwJsmTZI0yYwDEvlEb7sT4RGO40DpYwDCm3X8OE2Sjbue6dq9q1IqFzEak6M+bKII8e1TZ9WXK0bjLZ7IRVEURZGmaQhJUeRpmqZpWq1WQ0jSNKl9K03TPM9rt8+yLM/zLMv671j7gO8YY54XSVK7QZGmSe3Qb5qmRRFjLGpf53meJGmWpbW7Z1lWi78YY+2DXrIsq30dY0jTpPbdp59+prt757x5p9XV1cWXlUqlPM/TNE2SpLZI1Wo1SdLaYteernb3arX6zDPPTp7cXluvLEuTJHn9dRy4dnlehBBr1/evaQghTZM8z4si1tVVqtVqkiRJkvQ/Tu3Zi6JIkuTw4d76+mG128QYSqWsf31rN6tFcO2a/uetVvMkCbXH3LHjqfHjx1YqdkgA3kB5UaRZ9q0HVn37tp+H1pGhWjUmx5RT/uQXvtPWOsoBrLd4Ivc3bgghTf+wwKVSqf+7/dXYf5fPfvbvP//5v2tsbEwHnIuTJEmplL1847T/wO0vf7n8fe97TwjZsY9cu/vGjY8dOnTojDNO73+KJEmyLOvq2rZ8+Yorr/xUCOGqq66+5JKLurt3tbdPGrgk/V/Xvuh/8P7ray/fxx7bvGHDo5Mnt/ff4FXX8bOf/ft/+If/duyw1Fbni1/8H1dc8eFJkyYOXNNnnnm2UqmMHXvywEfuf/Zdu5779rev/vSnP9XdvWvatM6Bt6mt48CFvO6669/73ncNXJ7as+R5fvvtdyRJ8txzuxYtOtMOCcAbrbmuvtwyYmRjS9/LB4/oP4pcLfLML+K3diLXYmvDhkdvueX2hQsXNDc33nnn3ZdccvHcuXO+8Y2rYozTp0/btGnTggWnX3DBed/97g9CSPr6+j7xiY8dOHAgy7IHHli9fv2GxYvPmjt3Ti0Hb711ZWtr6zvesezmm285//zz1q1bXy5XvvKVr02ePHnjxk2VSuW002bffvsd06dPv/TSpbfdtmrt2t9efvllN99824YNG7785f9+++13DR/e8N73Xv7737/wL/+yvLu7u6GhIYTw/PO716x5aNmyix99dOP48eNWrly1ffuTBw8evPLK/7xixY2LF581ZsxJP/7xTz/0ob/8+tf/d3t7++LFZ9111915nr/znZc2NTWFEO666+6LL76wKIoVK27Yt6/n0kuXnnzymG9841sxhto6nn766UuWnLdr13NXX/2DPM//9m8/8sADazZufOycc86eM2fWihU3dnd3b9jwaK1Zn3hiy2233Z6m2ZlnLpgwYcKmTY81NTV+5zvfb2iob2tru/jit//ylyt6e3vf9a53pmna09PT0NCwdu1vp03r/Na3/k9DQ0NPz0sf+ci/DyGuWHFjuVx+xzsuaWxs7O7e+Y//+D+bm5tGjRp5//2rL7jg/ClT2q+55tpyuTR5ctsXv/ilz33uvzz00NpFi860UwHwRstj0Zfn1SKvFhL56ETuK3Jnn4S39qRvtf/W/973fjh+/Nienp6urm0jRoz40Y9+HEJYterOxYvP+v73f3jOOef87Gc/DyEsX37jvHlzGhrqf/KTa9va2u688+6bb76tpaX5q1/9+v79PUVRfPOb366rG3bPPffddNMtEyaM//KX/1dX19bZs2dOnz5t6tTOFStunDZt6nPPPT9mzJibb771tttu37p167JlS7u6usaNO3n+/Hk///l1IYQHH3z4mmuuve666xctOqO9va2vrxpCaG1tbm+fOGvWzF//+v6VK1c9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">
+      </div>
+      <figcaption><b>Figure 1.</b> paper-explainer-ko의 extract → embed 파이프라인이 만드는 data URI 이미지가 이 컴포넌트에 그대로 들어가요. 1080px 캔버스에서는 이미지 표시폭이 최대 ~990px이에요.</figcaption>
+    </figure>
+
+    <div class="tbl-wrap">
+      <div class="tbl-cap"><span class="tn">TABLE 1</span>수치 테이블 — 벤치마크 비교 (하이라이트 행 포함)</div>
+      <div class="tbl-scroll">
+        <table>
+          <thead><tr><th>Model</th><th>MMLU</th><th>GSM8K</th><th>HumanEval</th><th>Avg</th></tr></thead>
+          <tbody>
+            <tr><td>Baseline-7B</td><td>62.1</td><td>54.3</td><td>38.4</td><td>51.6</td></tr>
+            <tr class="hl"><td>Ours-13B</td><td>71.8</td><td>68.9</td><td>52.7</td><td>64.5</td></tr>
+            <tr><td>Ref-34B</td><td>74.2</td><td>71.0</td><td>55.1</td><td>66.8</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="tbl-foot">숫자 위주 데이터는 이 센터 정렬 테이블을 사용. 첫 열은 sticky.</div>
+    </div>
+
+    <div class="tbl-wrap tbl-compare">
+      <div class="tbl-cap"><span class="tn">TABLE 2</span>비교 테이블 — 서술형 비교 (sticky 헤더 · row hover)</div>
+      <div class="tbl-scroll">
+        <table>
+          <thead><tr><th>차원</th><th class="c-ar">접근 A</th><th class="c-arb">접근 B</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="dim">학습 방식<span class="d-sub">training</span></td>
+              <td><span class="yes-ar">비동기 RL</span> — rollout과 학습을 분리해 GPU 유휴를 줄임</td>
+              <td><span class="yes-arb">동기 PPO</span> — 구현이 단순하지만 스케일 한계</td>
+            </tr>
+            <tr>
+              <td class="dim">환경 지원<span class="d-sub">environments</span></td>
+              <td>커스텀 환경 위주 <span class="mini">(DIY)</span></td>
+              <td>라이브러리 내장 <span class="mini">(60+)</span></td>
+            </tr>
+            <tr>
+              <td class="dim">성숙도<span class="d-sub">maturity</span></td>
+              <td><span class="no">초기 단계</span></td>
+              <td>프로덕션 검증</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="ch" id="ch3">
+  <div class="wrap">
+    <div class="ch-eyebrow"><span class="cnum">03</span><span class="clabel">STATS · KEY CARDS · CHIPS</span></div>
+    <h2 class="ch-title">스탯 타일 · 키 카드 · 칩</h2>
+
+    <div class="stat-row">
+      <div class="stat"><div class="v">4.2×</div><div class="l">처리량 향상 (vs baseline)</div></div>
+      <div class="stat"><div class="v arb">-31%</div><div class="l">동기 방식 GPU 유휴 손실</div></div>
+      <div class="stat"><div class="v">128k</div><div class="l">지원 컨텍스트 길이</div></div>
+    </div>
+
+    <div class="keys">
+      <div class="key"><div class="k-num">KEY 01</div><h4>핵심 요점 카드</h4><p>문서 서두의 <span class="hl-ar">3줄 핵심</span>을 카드로 배치할 때 사용해요.</p></div>
+      <div class="key"><div class="k-num">KEY 02</div><h4>넓은 캔버스</h4><p>1080px에서 3단 그리드가 여유 있게 배치돼요.</p></div>
+      <div class="key"><div class="k-num">KEY 03</div><h4>세맨틱 강조</h4><p><span class="hl-ar">청록</span>과 <span class="hl-arb">앰버</span> 하이라이트를 카드 안에서도 사용해요.</p></div>
+    </div>
+
+    <div class="chips">
+      <span class="chip">default</span>
+      <span class="chip ar">async RL</span>
+      <span class="chip ar">GRPO</span>
+      <span class="chip arb">sync PPO</span>
+      <span class="chip arb">high idle</span>
+    </div>
+  </div>
+</section>
+
+<section class="ch" id="ch4">
+  <div class="wrap">
+    <div class="ch-eyebrow"><span class="cnum">04</span><span class="clabel">CHARTS</span></div>
+    <h2 class="ch-title">차트 — 바 · 레이더</h2>
+
+    <div class="tldr">
+      <div class="h">요약</div>
+      <p>바 차트는 CSS만으로, 레이더는 인라인 SVG로 그려요. 외부 라이브러리 없이 <strong>완전 오프라인</strong>으로 렌더돼요.</p>
+    </div>
+
+    <ul class="axis-read">
+      <li>
+        <div class="ax-name">학습 능력<span class="en">training</span></div>
+        <div class="bars">
+          <div class="bar-wrap"><div class="bar ar"><i style="width:90%"></i></div><span class="v">9</span></div>
+          <div class="bar-wrap"><div class="bar arb"><i style="width:40%"></i></div><span class="v">4</span></div>
+        </div>
+      </li>
+      <li>
+        <div class="ax-name">평가 범위<span class="en">evaluation</span></div>
+        <div class="bars">
+          <div class="bar-wrap"><div class="bar ar"><i style="width:50%"></i></div><span class="v">5</span></div>
+          <div class="bar-wrap"><div class="bar arb"><i style="width:85%"></i></div><span class="v">8.5</span></div>
+        </div>
+      </li>
+      <li>
+        <div class="ax-name">사용 편의성<span class="en">usability</span></div>
+        <div class="bars">
+          <div class="bar-wrap"><div class="bar ar"><i style="width:45%"></i></div><span class="v">4.5</span></div>
+          <div class="bar-wrap"><div class="bar arb"><i style="width:80%"></i></div><span class="v">8</span></div>
+        </div>
+      </li>
+    </ul>
+
+    <div class="chart-grid">
+      <div class="chart-box">
+        <svg viewBox="0 0 480 400" role="img" aria-label="7축 강점 레이더 차트 샘플">
+          <g fill="none" stroke="#DDDCD0" stroke-width="1">
+            <polygon points="230,161.3 256.4,174 262.9,202.5 244.6,225.4 215.4,225.4 197.1,202.5 203.6,174"/>
+            <polygon points="230,127.5 282.8,152.9 295.8,210 259.3,255.8 200.7,255.8 164.2,210 177.2,152.9"/>
+            <polygon points="230,93.8 309.2,131.9 328.7,217.5 273.9,286.2 186.1,286.2 131.3,217.5 150.8,131.9"/>
+            <polygon points="230,60 335.5,110.8 361.6,225 288.6,316.6 171.4,316.6 98.4,225 124.5,110.8"/>
+            <line x1="230" y1="195" x2="230" y2="60"/>
+            <line x1="230" y1="195" x2="335.5" y2="110.8"/>
+            <line x1="230" y1="195" x2="361.6" y2="225"/>
+            <line x1="230" y1="195" x2="288.6" y2="316.6"/>
+            <line x1="230" y1="195" x2="171.4" y2="316.6"/>
+            <line x1="230" y1="195" x2="98.4" y2="225"/>
+            <line x1="230" y1="195" x2="124.5" y2="110.8"/>
+          </g>
+          <polygon points="230,181.5 325,119.3 361.6,225 271,280.1 183.1,292.3 164.2,210 166.7,144.5"
+            fill="rgba(193,97,28,.13)" stroke="#C1611C" stroke-width="2" stroke-linejoin="round"/>
+          <g fill="#C1611C"><circle cx="230" cy="181.5" r="3"/><circle cx="325" cy="119.3" r="3"/><circle cx="361.6" cy="225" r="3"/><circle cx="271" cy="280.1" r="3"/><circle cx="183.1" cy="292.3" r="3"/><circle cx="164.2" cy="210" r="3"/><circle cx="166.7" cy="144.5" r="3"/></g>
+          <polygon points="230,60 272.2,161.3 295.8,210 282.7,304.5 212.4,231.5 124.7,219 124.5,110.8"
+            fill="rgba(14,124,99,.14)" stroke="#0E7C63" stroke-width="2" stroke-linejoin="round"/>
+          <g fill="#0E7C63"><circle cx="230" cy="60" r="3"/><circle cx="272.2" cy="161.3" r="3"/><circle cx="295.8" cy="210" r="3"/><circle cx="282.7" cy="304.5" r="3"/><circle cx="212.4" cy="231.5" r="3"/><circle cx="124.7" cy="219" r="3"/><circle cx="124.5" cy="110.8" r="3"/></g>
+          <g fill="#4A4A55" font-size="11" font-family="'JetBrains Mono',monospace">
+            <text x="230" y="38" text-anchor="middle">학습 능력</text>
+            <text x="352.8" y="100" text-anchor="start">평가 범위</text>
+            <text x="383.1" y="232" text-anchor="start">환경 라이브러리</text>
+            <text x="298.1" y="339" text-anchor="start">유연성</text>
+            <text x="161.9" y="339" text-anchor="end">사용 편의성</text>
+            <text x="76.9" y="232" text-anchor="end">성숙도</text>
+            <text x="107.3" y="100" text-anchor="end">프론티어 확장</text>
+          </g>
+        </svg>
+        <div class="chart-legend">
+          <span class="li"><span class="sq ar"></span>접근 A</span>
+          <span class="li"><span class="sq arb"></span>접근 B</span>
+        </div>
+      </div>
+      <div>
+        <h3 class="sub" style="margin-top:0">레이더 옆 해설 영역</h3>
+        <p>차트-그리드는 좌측 차트 박스 + 우측 해설의 2단 구성이에요. 화면이 좁아지면 자동으로 1단이 돼요.</p>
+        <p class="chart-note">정성 평가(0–10) 샘플. 실제 문서에서는 근거 출처를 함께 표기해요.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="ch" id="ch5">
+  <div class="wrap">
+    <div class="ch-eyebrow"><span class="cnum">05</span><span class="clabel">PIPELINE · VERSUS · PROS/CONS</span></div>
+    <h2 class="ch-title">파이프라인 · 비교 카드 · Pros/Cons</h2>
+
+    <div class="stage-row">
+      <div class="stage ar"><div class="st-i">STAGE 1</div><div class="st-t">데이터 수집</div><div class="st-d">원천 로그 취합</div></div>
+      <div class="stage ar"><div class="st-i">STAGE 2</div><div class="st-t">전처리</div><div class="st-d">필터링·중복 제거</div></div>
+      <div class="stage"><div class="st-i">STAGE 3</div><div class="st-t">학습</div><div class="st-d">SFT → RL</div></div>
+      <div class="stage arb"><div class="st-i">STAGE 4</div><div class="st-t">평가</div><div class="st-d">벤치마크 스위트</div></div>
+      <div class="stage arb"><div class="st-i">STAGE 5</div><div class="st-t">배포</div><div class="st-d">서빙 최적화</div></div>
+    </div>
+
+    <div class="versus">
+      <div class="card ar">
+        <h4><span class="tag">접근 A</span>구조적 순서</h4>
+        <ul><li>디코딩 순서가 항상 동일</li><li>학습·추론 분포 일치</li></ul>
+      </div>
+      <div class="card arb">
+        <h4><span class="tag">접근 B</span>임의 순서</h4>
+        <ul><li>순서 조합이 지수적으로 증가</li><li>분기 지점마다 엔트로피 급등</li></ul>
+      </div>
+    </div>
+
+    <div class="pc-grid">
+      <div class="pc ar">
+        <div class="pc-top"><strong>접근 A</strong><span class="t">STRUCTURED</span></div>
+        <div class="pc-body">
+          <p class="lbl">Pros</p>
+          <ul class="pros"><li><b>분포 안정성</b> — 학습이 수렴하기 쉬움</li><li>구현 단순</li></ul>
+          <p class="lbl">Cons</p>
+          <ul class="cons"><li>유연성이 낮음</li></ul>
+        </div>
+      </div>
+      <div class="pc arb">
+        <div class="pc-top"><strong>접근 B</strong><span class="t">ARBITRARY</span></div>
+        <div class="pc-body">
+          <p class="lbl">Pros</p>
+          <ul class="pros"><li>이론상 표현력 최대</li></ul>
+          <p class="lbl">Cons</p>
+          <ul class="cons"><li><b>학습 불안정</b> — 엔트로피 폭발</li><li>추론 비용 증가</li></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="ch" id="ch6">
+  <div class="wrap">
+    <div class="ch-eyebrow"><span class="cnum">06</span><span class="clabel">GLOSSARY · TAKEAWAYS</span></div>
+    <h2 class="ch-title">용어 사전 · 한 장 정리</h2>
+
+    <div class="gloss">
+      <div class="gitem"><div class="term">롤아웃<span class="en">rollout</span></div><p>정책이 환경과 상호작용하며 궤적을 생성하는 과정.</p></div>
+      <div class="gitem"><div class="term">비동기 학습<span class="en">async training</span></div><p>rollout 생성과 파라미터 업데이트를 분리해 병렬화하는 방식.</p></div>
+    </div>
+
+    <div class="takeaways">
+      <div class="take"><div class="n">1</div><div class="body"><b>캔버스 1080px 전체 폭</b> — 모든 콘텐츠의 오른쪽 라인이 정렬.</div></div>
+      <div class="take"><div class="n">2</div><div class="body">차트는 <b>CSS 바 + 인라인 SVG</b>로 외부 의존성 없이 렌더.</div></div>
+      <div class="take"><div class="n">3</div><div class="body">모든 문서형 HTML은 이 시스템 하나로 <b>일관된 스타일</b> 유지.</div></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div>doc-style · paper-ink 디자인 시스템 프리뷰</div>
+    <div class="disc">이 페이지는 컴포넌트 확인용 샘플이며, 데이터는 모두 예시값이에요.</div>
+  </div>
+</footer>
+
+</body>
+</html>

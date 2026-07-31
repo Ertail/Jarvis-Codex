@@ -1,7 +1,7 @@
 {
   "name": "jarvis-codex",
   "version": "0.1.0",
-  "description": "A thin Codex-native harness for planning, grounded research, independent review, document delivery, and change verification.",
+  "description": "A Codex-native harness for reliable work, Korean paper explainers, and styled HTML document delivery.",
   "author": {
     "name": "Ertail",
     "url": "https://github.com/Ertail"
@@ -13,26 +13,32 @@
     "harness",
     "planning",
     "verification",
-    "multi-agent"
+    "multi-agent",
+    "html",
+    "research-paper"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "Jarvis Codex",
-    "shortDescription": "A lean operating layer for reliable Codex work.",
-    "longDescription": "Jarvis Codex adds risk-aware planning, evidence-grounded research, independent review, audience-ready document delivery, and repository-native verification while preserving Codex autonomy.",
+    "shortDescription": "Reliable workflows and styled research documents.",
+    "longDescription": "Jarvis Codex adds risk-aware planning, evidence-grounded research, independent review, repository-native verification, Korean paper explainers, and swappable house-styled HTML document delivery.",
     "developerName": "Ertail",
     "category": "Productivity",
     "capabilities": [
       "Planning",
       "Research",
       "Review",
-      "Verification"
+      "Verification",
+      "Korean Paper Explainers",
+      "HTML Document Styling"
     ],
     "websiteURL": "https://github.com/Ertail/Jarvis-Codex",
     "defaultPrompt": [
       "Plan and execute this change with the lightest safe process.",
       "Research this question and separate evidence from inference.",
-      "Review this work against its requirements and verification evidence."
+      "Review this work against its requirements and verification evidence.",
+      "Turn this paper PDF into a Korean HTML explainer.",
+      "Create this report as a visual paper-ink HTML document."
     ]
   }
 }

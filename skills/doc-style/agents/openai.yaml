@@ -1,0 +1,4 @@
+interface:
+  display_name: "Document Style Registry"
+  short_description: "HTML 문서 스타일을 적용하고 교체하는 디자인 레지스트리"
+  default_prompt: "Use $doc-style to create this HTML document with the active house style."

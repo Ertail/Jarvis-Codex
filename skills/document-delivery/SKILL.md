@@ -12,12 +12,17 @@ Produce a useful document without inventing source claims.
 Determine:
 
 - source set and authority;
-- deliverable type and format;
+- deliverable type and format; default reports and documents for Maverick to a
+  self-contained HTML file using the active `$doc-style` system;
 - audience and decision context;
 - required inclusions and exclusions;
 - factual, visual, and length constraints.
 
 Ask only for missing information that would materially change the result.
+
+Use a non-HTML format when Maverick explicitly requests it, a native editable
+artifact is required, or the target system imposes another format. Ordinary
+chat answers are not document artifacts.
 
 ## Analyze sources
 
@@ -41,6 +46,12 @@ Choose the lightest route:
 Build the narrative around the audience's decision, not the source order. Mark
 inference and preserve uncertainty. Never add unsupported facts for smoothness.
 
+For an HTML deliverable, apply `$doc-style` and include a visualization that
+materially clarifies the evidence or structure: a comparison table, metric
+view, process flow, timeline, chart, or explanatory diagram. Do not invent
+quantitative values to create a chart. If no visual would add honest
+explanatory value, omit it and state why in the handoff.
+
 ## Review and deliver
 
 Check:
@@ -50,7 +61,7 @@ Check:
 - audience fit;
 - internal consistency;
 - factual attribution;
-- visual/render quality when layout matters.
+- visual/render quality at desktop and narrow widths when layout matters.
 
 When using a reviewed route, apply `$independent-review` with the source set as
 the external standard. Deliver the artifact, source summary, intentional
