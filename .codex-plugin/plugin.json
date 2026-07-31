@@ -1,6 +1,6 @@
 {
   "name": "jarvis-codex",
-  "version": "0.1.0",
+  "version": "0.1.0+codex.20260731111330",
   "description": "A Codex-native harness for reliable work, Korean paper explainers, and styled HTML document delivery.",
   "author": {
     "name": "Ertail",
